@@ -14,7 +14,13 @@
             <ul class="navbar-nav me-auto">
 
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                    @if(Auth::check())
+                        @if(Auth::user()->role === 'guru')
+                            <a class="nav-link" href="{{ route('dashboard.guru') }}">Dashboard</a>
+                        @elseif(Auth::user()->role === 'kepala_sekolah')
+                            <a class="nav-link" href="{{ route('dashboard') }}">Dashboard</a>
+                        @endif
+                    @endif
                 </li>
 
                 {{-- MASTER DATA --}}
@@ -26,9 +32,15 @@
 
                         <li><a class="dropdown-item" href="{{ route('user.index') }}">User</a></li>
                         <li><a class="dropdown-item" href="{{ route('guru.index') }}">Guru</a></li>
+                        <li><a class="dropdown-item" href="{{ route('wali-murid.index') }}">Wali Murid</a></li>
                         <li><a class="dropdown-item" href="{{ route('kpi.index') }}">KPI</a></li>
+                        <li><a class="dropdown-item" href="{{ route('kpi-questions.index') }}">Pertanyaan KPI</a></li>
                         <li><a class="dropdown-item" href="{{ route('period.index') }}">Periode</a></li>
                         <li><a class="dropdown-item" href="{{ route('weights.index') }}">Bobot Penilai</a></li>
+                        @if(Auth::check() && Auth::user()->role === 'kepala_sekolah')
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ route('recommendations.index') }}">Rekomendasi</a></li>
+                        @endif
 
                     </ul>
                 </li>

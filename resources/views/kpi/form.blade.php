@@ -5,18 +5,21 @@
 </div>
 
 <div class="mb-3">
-    <label>Kategori</label>
-    <input type="text" name="kategori" class="form-control"
-           value="{{ old('kategori', $kpi->kategori ?? '') }}">
+    <label>Kompetensi</label>
+    <select name="kompetensi" class="form-control">
+        @php
+            $current = old('kompetensi', $kpi->kompetensi ?? '');
+        @endphp
+        <option value="">-- Pilih Kompetensi --</option>
+        <option value="pedagogik" {{ $current === 'pedagogik' ? 'selected' : '' }}>Pedagogik</option>
+        <option value="kepribadian" {{ $current === 'kepribadian' ? 'selected' : '' }}>Kepribadian</option>
+        <option value="sosial" {{ $current === 'sosial' ? 'selected' : '' }}>Sosial</option>
+        <option value="profesional" {{ $current === 'profesional' ? 'selected' : '' }}>Profesional</option>
+    </select>
 </div>
 
 <div class="mb-3">
     <label>Bobot (%)</label>
     <input type="number" min="0" max="100" name="bobot" class="form-control"
            value="{{ old('bobot', $kpi->bobot ?? '') }}">
-</div>
-
-<div class="mb-3">
-    <label>Deskripsi</label>
-    <textarea name="deskripsi" class="form-control" rows="3">{{ old('deskripsi', $kpi->deskripsi ?? '') }}</textarea>
 </div>

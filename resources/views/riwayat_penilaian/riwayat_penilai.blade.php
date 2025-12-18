@@ -36,7 +36,7 @@
             <tbody>
                 @foreach ($e->details as $d)
                 <tr>
-                    <td>{{ $d->kpi->nama }}</td>
+                    <td>{{ $d->kpi->nama ?? '-' }}</td>
                     <td>{{ $d->nilai }}</td>
                 </tr>
                 @endforeach

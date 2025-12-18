@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Models\Guru;
 use App\Models\Period;
 use App\Models\Evaluation;
+use App\Models\EvaluationDetail;
+use App\Models\KpiIndicator;
 use App\Models\FinalScore;
 use App\Models\EvaluatorWeight;
+use App\Models\Recommendation;
 use Illuminate\Http\Request;
 
 class FinalScoreController extends Controller
@@ -25,9 +28,15 @@ class FinalScoreController extends Controller
 
         $gurus = Guru::all();
 
+        // Ambil semua indikator KPI
+        $indicators = KpiIndicator::all();
+        if ($indicators->isEmpty()) {
+            return back()->with('error', 'Belum ada indikator KPI, tidak bisa menghitung nilai akhir.');
+        }
+
         foreach ($gurus as $guru) {
 
-            // 2️⃣ Ambil rata-rata nilai per evaluator
+            // 2️⃣ (Tambahan) Ambil rata-rata nilai per evaluator (semua indikator) – untuk informasi saja
             $nilaiKepsek = Evaluation::where([
                 'guru_id'       => $guru->id,
                 'periode_id'    => $periode->id,
@@ -69,22 +78,58 @@ class FinalScoreController extends Controller
                 );
             }
 
-            // 6️⃣ Hitung nilai akhir (360°)
-            $nilaiAkhir =
-                ($nilaiKepsek * $bobot->kepala_sekolah / 100) +
-                ($nilaiRekan  * $bobot->rekan_guru     / 100) +
-                ($nilaiWali   * $bobot->wali_murid     / 100);
+            // 6️⃣ Hitung nilai per indikator sesuai formula yang diminta
+            $totalNilaiAkhir = 0;
 
-            // 7️⃣ Tentukan rekomendasi otomatis
-            if ($nilaiAkhir >= 85) {
-                $rekomendasi = 'promosi';
-            } elseif ($nilaiAkhir >= 70) {
-                $rekomendasi = 'pelatihan';
-            } elseif ($nilaiAkhir >= 55) {
-                $rekomendasi = 'evaluasi';
-            } else {
-                $rekomendasi = 'pembinaan';
+            foreach ($indicators as $indicator) {
+                // 1. Rata-rata nilai setiap penilai dari masing-masing indikator
+                $avgKepsekIndikator = EvaluationDetail::where('kpi_indicator_id', $indicator->id)
+                    ->whereHas('evaluation', function ($q) use ($guru, $periode) {
+                        $q->where('guru_id', $guru->id)
+                          ->where('periode_id', $periode->id)
+                          ->where('role_penilai', 'kepala_sekolah');
+                    })
+                    ->avg('nilai') ?? 0;
+
+                $avgRekanIndikator = EvaluationDetail::where('kpi_indicator_id', $indicator->id)
+                    ->whereHas('evaluation', function ($q) use ($guru, $periode) {
+                        $q->where('guru_id', $guru->id)
+                          ->where('periode_id', $periode->id)
+                          ->where('role_penilai', 'guru');
+                    })
+                    ->avg('nilai') ?? 0;
+
+                $avgWaliIndikator = EvaluationDetail::where('kpi_indicator_id', $indicator->id)
+                    ->whereHas('evaluation', function ($q) use ($guru, $periode) {
+                        $q->where('guru_id', $guru->id)
+                          ->where('periode_id', $periode->id)
+                          ->where('role_penilai', 'wali_murid');
+                    })
+                    ->avg('nilai') ?? 0;
+
+                // 2. Rata-rata 360° setiap indikator
+                $rata360Indikator =
+                    ($avgKepsekIndikator * $bobot->kepala_sekolah / 100) +
+                    ($avgRekanIndikator  * $bobot->rekan_guru     / 100) +
+                    ($avgWaliIndikator   * $bobot->wali_murid     / 100);
+
+                // 3. Nilai akhir indikator = bobot indikator * rata-rata 360 / 5
+                // (skala nilai 1–5)
+                $nilaiAkhirIndikator = $indicator->bobot * ($rata360Indikator / 5);
+
+                // 4. Total nilai keseluruhan = jumlah nilai dari semua indikator
+                $totalNilaiAkhir += $nilaiAkhirIndikator;
             }
+
+            $nilaiAkhir = $totalNilaiAkhir;
+
+            // 7️⃣ Tentukan rekomendasi otomatis berdasarkan master rekomendasi
+            $rec = Recommendation::where('min_score', '<=', $nilaiAkhir)
+                ->where('max_score', '>=', $nilaiAkhir)
+                ->orderBy('min_score', 'desc')
+                ->first();
+
+            $rekomendasi = $rec ? $rec->nama : null;
 
             // 8️⃣ Simpan / update nilai akhir
             FinalScore::updateOrCreate(

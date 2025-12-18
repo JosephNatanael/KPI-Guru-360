@@ -12,10 +12,8 @@ class Guru extends Model
     protected $fillable = [
         'nama',
         'nip',
-        'jabatan',
         'is_wali_kelas',
         'kelas',
-        'mata_pelajaran',
     ];
 
     // Relasi Guru → User

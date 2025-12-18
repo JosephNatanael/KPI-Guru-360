@@ -9,7 +9,8 @@ class KpiIndicatorController extends Controller
 {
     public function index()
     {
-        $kpis = KpiIndicator::latest()->paginate(10);
+        // Tampilkan semua data KPI tanpa paginasi
+        $kpis = KpiIndicator::orderBy('id', 'asc')->get();
         return view('kpi.index', compact('kpis'));
     }
 
@@ -22,12 +23,11 @@ class KpiIndicatorController extends Controller
     {
         $request->validate([
             'nama'        => 'required|string|max:255',
-            'deskripsi'   => 'nullable|string',
-            'kategori'    => 'nullable|string|max:100',
+            'kompetensi'  => 'required|in:pedagogik,kepribadian,sosial,profesional',
             'bobot'       => 'required|numeric|min:0|max:100',
         ]);
 
-        KpiIndicator::create($request->all());
+        KpiIndicator::create($request->only('nama', 'kompetensi', 'bobot'));
 
         return redirect()->route('kpi.index')->with('success', 'KPI berhasil ditambahkan!');
     }
@@ -41,12 +41,11 @@ class KpiIndicatorController extends Controller
     {
         $request->validate([
             'nama'        => 'required|string|max:255',
-            'deskripsi'   => 'nullable|string',
-            'kategori'    => 'nullable|string|max:100',
+            'kompetensi'  => 'required|in:pedagogik,kepribadian,sosial,profesional',
             'bobot'       => 'required|numeric|min:0|max:100',
         ]);
 
-        $kpi->update($request->all());
+        $kpi->update($request->only('nama', 'kompetensi', 'bobot'));
 
         return redirect()->route('kpi.index')->with('success', 'KPI berhasil diperbarui!');
     }

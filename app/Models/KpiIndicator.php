@@ -19,4 +19,9 @@ class KpiIndicator extends Model
     {
         return $this->hasMany(EvaluationDetail::class);
     }
+
+    public function questions()
+    {
+        return $this->hasMany(KpiQuestion::class, 'kpi_indicator_id');
+    }
 }

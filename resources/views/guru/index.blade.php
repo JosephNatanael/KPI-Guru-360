@@ -14,9 +14,7 @@
             <tr>
                 <th>Nama</th>
                 <th>NIP</th>
-                <th>Jabatan</th>
                 <th>Wali Kelas</th>
-                <th>Mata Pelajaran</th>
                 <th>Aksi</th>
             </tr>
         </thead>
@@ -25,9 +23,7 @@
             <tr>
                 <td>{{ $g->nama }}</td>
                 <td>{{ $g->nip }}</td>
-                <td>{{ $g->jabatan }}</td>
-                <td>{{ $g->is_wali_kelas ? 'Ya (' . $g->kelas . ')' : 'Tidak' }}</td>
-                <td>{{ $g->mata_pelajaran }}</td>
+                <td>{{ $g->is_wali_kelas ? '' . $g->kelas : '-' }}</td>
                 <td>
                     <a href="{{ route('guru.edit', $g->id) }}" class="btn btn-warning btn-sm">Edit</a>
                     <form action="{{ route('guru.destroy', $g->id) }}" method="POST" class="d-inline">

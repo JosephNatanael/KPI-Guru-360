@@ -23,9 +23,10 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-        UserSeeder::class,
-        KpiIndicatorSeeder::class,
-        EvaluatorWeightSeeder::class,
-    ]);
+            UserSeeder::class,
+            KpiIndicatorSeeder::class,
+            EvaluatorWeightSeeder::class,
+            DummyDataSeeder::class, // Data dummy lengkap: guru, user, wali murid, periode, evaluasi
+        ]);
     }
 }

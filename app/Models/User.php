@@ -23,6 +23,11 @@ class User extends Authenticatable
         'remember_token',
     ];
 
+    public function waliMurid()
+    {
+        return $this->hasOne(WaliMurid::class);
+    }
+
     // Relasi User → Guru
     public function guru()
     {

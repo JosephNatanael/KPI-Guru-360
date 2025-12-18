@@ -9,8 +9,11 @@ use App\Http\Controllers\EvaluatorWeightController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\FinalScoreController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\WaliMuridController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\RiwayatPenilaianController;
+use App\Http\Controllers\RecommendationController;
+use App\Http\Controllers\KpiQuestionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,11 +42,11 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | DASHBOARD (SEMUA ROLE)
+    | DASHBOARD KHUSUS GURU
     |--------------------------------------------------------------------------
     */
-    Route::get('/dashboard', [DashboardController::class, 'index'])
-        ->name('dashboard');
+    Route::get('/dashboard-guru', [DashboardController::class, 'dashboardGuru'])
+        ->name('dashboard.guru');
 
     /*
     |--------------------------------------------------------------------------
@@ -51,6 +54,10 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('role:kepala_sekolah')->group(function () {
+
+        // Dashboard kepala sekolah
+        Route::get('/dashboard', [DashboardController::class, 'index'])
+            ->name('dashboard');
 
         // Riwayat penilaian (list guru + periode)
         Route::get(
@@ -69,6 +76,10 @@ Route::middleware('auth')->group(function () {
             [RiwayatPenilaianController::class, 'riwayatPenilai']
         )->name('riwayat.penilaian.penilai');
 
+        // Master rekomendasi hanya boleh diatur kepala sekolah
+        Route::resource('recommendations', RecommendationController::class)
+            ->except(['show']);
+
     });
 
     /*
@@ -78,7 +89,9 @@ Route::middleware('auth')->group(function () {
     */
     Route::resource('guru', GuruController::class);
     Route::resource('user', UserController::class);
+    Route::resource('wali-murid', WaliMuridController::class);
     Route::resource('kpi', KpiIndicatorController::class);
+    Route::resource('kpi-questions', KpiQuestionController::class)->except(['show']);
     Route::resource('period', PeriodController::class);
     Route::resource('weights', EvaluatorWeightController::class);
 

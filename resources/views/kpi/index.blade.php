@@ -13,7 +13,7 @@
         <thead>
             <tr>
                 <th>Nama KPI</th>
-                <th>Kategori</th>
+                <th>Kompetensi</th>
                 <th>Bobot (%)</th>
                 <th>Aksi</th>
             </tr>
@@ -22,7 +22,7 @@
             @foreach($kpis as $k)
             <tr>
                 <td>{{ $k->nama }}</td>
-                <td>{{ $k->kategori ?? '-' }}</td>
+                <td>{{ $k->kompetensi }}</td>
                 <td>{{ $k->bobot }}</td>
                 <td>
                     <a href="{{ route('kpi.edit', $k->id) }}" class="btn btn-warning btn-sm">Edit</a>
@@ -38,7 +38,5 @@
             @endforeach
         </tbody>
     </table>
-
-    {{ $kpis->links() }}
 </div>
 @endsection
