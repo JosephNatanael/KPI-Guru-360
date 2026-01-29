@@ -16,7 +16,7 @@ class FinalScore extends Model
         'nilai_rekan_guru',
         'nilai_wali_murid',
         'nilai_akhir',
-        'rekomendasi',
+        'recommendation_id',
     ];
 
     public function guru()
@@ -27,5 +27,10 @@ class FinalScore extends Model
     public function period()
     {
         return $this->belongsTo(Period::class, 'periode_id');
+    }
+
+    public function recommendation()
+    {
+        return $this->belongsTo(Recommendation::class);
     }
 }

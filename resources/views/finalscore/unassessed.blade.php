@@ -1,0 +1,43 @@
+@extends('layouts.app')
+
+@section('content')
+<div class="container">
+    <h3>Daftar Guru Belum Dinilai - Periode {{ $periode->tahun_ajaran }}</h3>
+    
+    <div class="mb-3">
+        <a href="{{ route('dashboard') }}" class="btn btn-secondary">Kembali ke Dashboard</a>
+    </div>
+
+    @if($gurus->isEmpty())
+        <div class="alert alert-success">
+            Semua guru sudah dinilai pada periode ini.
+        </div>
+    @else
+        <table class="table table-bordered table-striped">
+            <thead class="table-danger">
+                <tr>
+                    <th>No</th>
+                    <th>Nama Guru</th>
+                    <th>Jabatan</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($gurus as $index => $guru)
+                <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ $guru->nama }}</td>
+                    <td>{{ $guru->is_wali_kelas ? 'Wali Kelas ' . $guru->kelas : 'Guru Mapel' }}</td>
+                    <td>
+                        {{-- Link to evaluation page if possible, or just a reminder --}}
+                         <a href="{{ route('evaluation.index') }}" class="btn btn-sm btn-primary">
+                            Mulai Penilaian
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+</div>
+@endsection

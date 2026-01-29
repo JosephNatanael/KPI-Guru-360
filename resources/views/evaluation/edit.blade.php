@@ -1,0 +1,87 @@
+@extends('layouts.app')
+
+@section('content')
+    <div class="container">
+        <h3>Edit Penilaian Untuk: <b>{{ $guru->nama }}</b></h3>
+        <p>Periode: <b>{{ $periode->tahun_ajaran }} ({{ ucfirst($periode->semester) }})</b></p>
+        <hr>
+
+        <form action="{{ route('evaluation.update', $evaluation->id) }}" method="POST">
+            @csrf
+            @method('PUT')
+
+            @foreach($kpis as $kpi)
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <strong>{{ $kpi->nama }}</strong>
+                            <span class="badge bg-light text-dark ms-2">{{ ucfirst($kpi->kompetensi) }}</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @if($kpi->questions->isEmpty())
+                            <div class="alert alert-warning">
+                                KPI ini belum memiliki pertanyaan.
+                            </div>
+                        @else
+                            <table class="table table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%">No</th>
+                                        <th>Pertanyaan</th>
+                                        <th width="15%">Nilai (1–5)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($kpi->questions as $index => $question)
+                                        @php
+                                            // Ambil nilai lama jika ada
+                                            $oldVal = $existingAnswers[$question->id] ?? null;
+                                        @endphp
+                                        <tr>
+                                            <td class="text-center">{{ $index + 1 }}</td>
+                                            <td>{{ $question->pertanyaan }}</td>
+                                            <td>
+                                                @php
+                                                    $colors = [
+                                                        1 => 'danger',
+                                                        2 => 'warning',
+                                                        3 => 'secondary',
+                                                        4 => 'primary',
+                                                        5 => 'success',
+                                                    ];
+                                                @endphp
+
+                                                <div class="btn-group" role="group" aria-label="Nilai 1 sampai 5">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <input type="radio" class="btn-check" name="nilai[question_{{ $question->id }}]"
+                                                            id="q{{ $question->id }}_{{ $i }}" value="{{ $i }}" 
+                                                            {{ $oldVal == $i ? 'checked' : '' }} required>
+                                                            <label
+                                                                class="btn btn-outline-{{ $colors[$i] }} rounded-circle"
+                                                                style="width:38px;height:38px;line-height:24px"
+                                                                for="q{{ $question->id }}_{{ $i }}"> {{ $i }} 
+                                                            </label>
+                                                    @endfor
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        @endif
+                    </div>
+                </div>
+            @endforeach
+
+            <div class="mt-3">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-save"></i> Perbarui Penilaian
+                </button>
+                <a href="{{ route('evaluation.index') }}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times"></i> Batal
+                </a>
+            </div>
+        </form>
+    </div>
+@endsection

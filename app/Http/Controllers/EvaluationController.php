@@ -32,7 +32,35 @@ class EvaluationController extends Controller
             ->orderBy('id', 'DESC')
             ->get();
 
-        return view('evaluation.index', compact('evaluations', 'periode'));
+        // Ambil ID guru yang SUDAH dinilai
+        $evaluatedGuruIds = $evaluations->pluck('guru_id')->toArray();
+
+        // Tentukan guru yang BOLEH dinilai berdasarkan role
+        $eligibleGurus = collect();
+
+        if ($user->role === 'kepala_sekolah' || $user->role === 'admin') {
+            $eligibleGurus = Guru::all();
+        } elseif ($user->role === 'guru') {
+            // Guru menilai rekan sejawat (kecuali diri sendiri)
+            $currentGuruId = $user->guru->id ?? null;
+            $eligibleGurus = Guru::where('id', '!=', $currentGuruId)->get();
+        } elseif ($user->role === 'wali_murid') {
+            // Wali murid hanya menilai wali kelas anaknya
+            $wali = WaliMurid::where('user_id', $user->id)->first();
+            if ($wali) {
+                $guruWaliKelas = Guru::where('is_wali_kelas', 1)
+                    ->where('kelas', $wali->kelas)
+                    ->first();
+                if ($guruWaliKelas) {
+                    $eligibleGurus = collect([$guruWaliKelas]);
+                }
+            }
+        }
+
+        // Filter guru yang BELUM dinilai
+        $unevaluatedGurus = $eligibleGurus->whereNotIn('id', $evaluatedGuruIds);
+
+        return view('evaluation.index', compact('evaluations', 'periode', 'unevaluatedGurus'));
     }
 
     public function pilihGuru()
@@ -44,20 +72,35 @@ class EvaluationController extends Controller
             return back()->with('error', 'Belum ada periode aktif.');
         }
 
-        // Kepala sekolah → boleh menilai semua guru
-        if ($user->role === 'kepala_sekolah') {
+        $evaluatedGuruIds = Evaluation::where('penilai_id', $user->id)
+            ->where('periode_id', $periode->id)
+            ->pluck('guru_id')
+            ->toArray();
+
+        // Kepala sekolah & Admin → boleh menilai semua guru
+        if ($user->role === 'kepala_sekolah' || $user->role === 'admin') {
             $gurus = Guru::all();
-            return view('evaluation.pilih-guru', compact('gurus', 'periode'));
+            return view('evaluation.pilih-guru', compact('gurus', 'periode', 'evaluatedGuruIds'));
         }
 
         // Guru → peer review (tidak boleh menilai diri sendiri)
         if ($user->role === 'guru') {
-            $gurus = Guru::where('id', '!=', $user->guru_id)->get();
-            return view('evaluation.pilih-guru', compact('gurus', 'periode'));
+            $currentGuruId = $user->guru->id ?? null;
+            $gurus = Guru::where('id', '!=', $currentGuruId)->get();
+            return view('evaluation.pilih-guru', compact('gurus', 'periode', 'evaluatedGuruIds'));
         }
 
         // Wali murid → langsung diarahkan ke wali kelas anaknya
         if ($user->role === 'wali_murid') {
+            
+            // Check duplicate check first
+            $existing = Evaluation::where('periode_id', $periode->id)
+                ->where('penilai_id', $user->id) 
+                ->exists();
+
+            if($existing) {
+                 return back()->with('error', 'Anda sudah melakukan penilaian untuk periode ini.');
+            }
 
             // Cari data wali murid berdasarkan user_id
             $wali = WaliMurid::where('user_id', $user->id)->first();
@@ -98,10 +141,12 @@ class EvaluationController extends Controller
                 ->with('error', 'Tidak ada periode aktif. Silakan aktifkan periode terlebih dahulu.');
         }
 
-        // Cek KPI dengan pertanyaan-pertanyaannya
-        $kpis = KpiIndicator::with(['questions' => function($query) {
-            $query->orderBy('urutan', 'asc');
-        }])->get();
+        // Cek KPI aktif dengan pertanyaan-pertanyaannya untuk periode ini
+        $kpis = KpiIndicator::where('is_active', true)
+            ->with(['questions' => function($query) use ($periode) {
+                $query->where('periode_id', $periode->id)
+                      ->orderBy('urutan', 'asc');
+            }])->get();
         
         if ($kpis->isEmpty()) {
             return back()->with('error', 'Belum ada indikator KPI.');
@@ -128,8 +173,22 @@ class EvaluationController extends Controller
             return back()->with('error', 'Tidak ada periode aktif.');
         }
 
-        // Ambil semua KPI dengan pertanyaan-pertanyaannya untuk validasi
-        $kpis = KpiIndicator::with('questions')->get();
+        // Cek duplicate
+        $exists = Evaluation::where('periode_id', $periode->id)
+            ->where('guru_id', $guru_id)
+            ->where('penilai_id', $user->id)
+            ->exists();
+        
+        if ($exists) {
+            return redirect()->route('evaluation.index')
+                ->with('error', 'Anda sudah menilai guru ini pada periode aktif.');
+        }
+
+        // Ambil semua KPI aktif dengan pertanyaan-pertanyaannya untuk periode ini untuk validasi
+        $kpis = KpiIndicator::where('is_active', true)
+            ->with(['questions' => function($query) use ($periode) {
+                $query->where('periode_id', $periode->id);
+            }])->get();
         
         // Buat rules validasi dinamis untuk setiap pertanyaan
         // Struktur: nilai[question_1], nilai[question_2], dll
@@ -169,20 +228,23 @@ class EvaluationController extends Controller
             foreach ($kpi->questions as $question) {
                 $key = 'question_' . $question->id;
                 if (isset($request->nilai[$key])) {
-                    $questionScores[] = (int)$request->nilai[$key];
+                    $val = (int)$request->nilai[$key];
+                    $questionScores[] = $val;
+
+                    // Simpan nilai per pertanyaan ke evaluation_details
+                    EvaluationDetail::create([
+                        'evaluation_id' => $evaluation->id,
+                        'kpi_question_id' => $question->id,
+                        'nilai' => $val,
+                    ]);
                 }
             }
             
-            // Hitung rata-rata nilai untuk KPI ini
+            // Hitung rata-rata nilai untuk KPI ini (untuk perhitungan average_score)
             if (!empty($questionScores)) {
                 $kpiAverage = array_sum($questionScores) / count($questionScores);
                 
-                // Simpan nilai rata-rata KPI ke evaluation_details
-                EvaluationDetail::create([
-                    'evaluation_id' => $evaluation->id,
-                    'kpi_indicator_id' => $kpi->id,
-                    'nilai' => round($kpiAverage, 2),
-                ]);
+                // Sebelumnya menyimpan rata-rata per KPI, sekarang sudah disimpan per pertanyaan detail di atas.
                 
                 $total += $kpiAverage;
                 $count++;
@@ -194,5 +256,108 @@ class EvaluationController extends Controller
         $evaluation->save();
 
         return redirect()->route('evaluation.index')->with('success', 'Penilaian berhasil disimpan!');
+    }
+
+    public function edit($id)
+    {
+        $evaluation = Evaluation::findOrFail($id);
+        
+        // Pastikan yang mengedit adalah pemilik penilaian
+        if ($evaluation->penilai_id !== Auth::id()) {
+            return back()->with('error', 'Anda tidak memiliki hak akses untuk mengedit penilaian simulasi ini.');
+        }
+
+        $guru = $evaluation->guru;
+        $periode = $evaluation->period; // Menggunakan relasi period di model Evaluation
+
+        // Cek apakah periode masih aktif (opsional, tergantung rules bisnis)
+        $activePeriod = Period::where('status', 'aktif')->first();
+        if (!$activePeriod || $activePeriod->id !== $periode->id) {
+             return back()->with('error', 'Hanya penilaian pada periode aktif yang dapat diubah.');
+        }
+
+        // Ambil KPI aktif dan pertanyaan untuk periode evaluasi ini
+        $kpis = KpiIndicator::where('is_active', true)
+            ->with(['questions' => function($query) use ($periode) {
+                $query->where('periode_id', $periode->id)
+                      ->orderBy('urutan', 'asc');
+            }])->get();
+
+        // Ambil detail jawaban yang sudah ada
+        // Kita map supaya mudah diakses di view: $existingAnswers[question_id] = nilai
+        $existingAnswers = $evaluation->details->pluck('nilai', 'kpi_question_id')->toArray();
+
+        return view('evaluation.edit', compact('evaluation', 'guru', 'periode', 'kpis', 'existingAnswers'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $evaluation = Evaluation::findOrFail($id);
+
+        if ($evaluation->penilai_id !== Auth::id()) {
+             return back()->with('error', 'Unauthorized.');
+        }
+        
+        // Validasi sama seperti store
+        $kpis = KpiIndicator::where('is_active', true)
+            ->with(['questions' => function($query) use ($evaluation) {
+                $query->where('periode_id', $evaluation->periode_id);
+            }])->get();
+        
+        $rules = [];
+        foreach ($kpis as $kpi) {
+            foreach ($kpi->questions as $question) {
+                $key = 'nilai.question_' . $question->id;
+                $rules[$key] = 'required|integer|min:1|max:5';
+            }
+        }
+
+        $messages = [
+            'required' => 'Semua pertanyaan harus diisi.',
+            'integer' => 'Nilai harus berupa angka.',
+            'min' => 'Nilai minimal adalah 1.',
+            'max' => 'Nilai maksimal adalah 5.',
+        ];
+
+        $request->validate($rules, $messages);
+
+        // Update detail penilaian
+        $total = 0;
+        $count = 0;
+
+        foreach ($kpis as $kpi) {
+            $questionScores = [];
+            foreach ($kpi->questions as $question) {
+                $key = 'question_' . $question->id;
+                if (isset($request->nilai[$key])) {
+                    $val = (int)$request->nilai[$key];
+                    $questionScores[] = $val;
+
+                    // Update or create detail
+                    // Kita cari berdasarkan evaluation_id dan kpi_question_id
+                    EvaluationDetail::updateOrCreate(
+                        [
+                            'evaluation_id' => $evaluation->id,
+                            'kpi_question_id' => $question->id,
+                        ],
+                        [
+                            'nilai' => $val
+                        ]
+                    );
+                }
+            }
+
+            if (!empty($questionScores)) {
+                 $kpiAverage = array_sum($questionScores) / count($questionScores);
+                 $total += $kpiAverage;
+                 $count++;
+            }
+        }
+
+        // Update average score utama
+        $evaluation->average_score = $count > 0 ? round($total / $count, 2) : 0;
+        $evaluation->save();
+
+        return redirect()->route('evaluation.index')->with('success', 'Penilaian berhasil diperbarui!');
     }
 }

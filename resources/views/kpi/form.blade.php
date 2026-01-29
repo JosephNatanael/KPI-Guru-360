@@ -23,3 +23,13 @@
     <input type="number" min="0" max="100" name="bobot" class="form-control"
            value="{{ old('bobot', $kpi->bobot ?? '') }}">
 </div>
+
+<div class="mb-3">
+    <div class="form-check">
+        <input type="checkbox" name="is_active" class="form-check-input" id="is_active" value="1"
+               {{ old('is_active', isset($kpi) ? $kpi->is_active : true) ? 'checked' : '' }}>
+        <label class="form-check-label" for="is_active">
+            Aktif (KPI akan muncul dalam proses penilaian)
+        </label>
+    </div>
+</div>

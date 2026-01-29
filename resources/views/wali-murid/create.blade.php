@@ -17,17 +17,7 @@
     <form action="{{ route('wali-murid.store') }}" method="POST">
         @csrf
 
-        <div class="mb-3">
-            <label>User (Akun Wali Murid)</label>
-            <select name="user_id" class="form-control">
-                <option value="">-- Pilih User --</option>
-                @foreach($users as $u)
-                    <option value="{{ $u->id }}" {{ old('user_id') == $u->id ? 'selected' : '' }}>
-                        {{ $u->name }} ({{ $u->email }})
-                    </option>
-                @endforeach
-            </select>
-        </div>
+
 
         <div class="mb-3">
             <label>Nama Wali</label>

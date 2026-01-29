@@ -6,6 +6,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+
 class User extends Authenticatable
 {
     use HasFactory, Notifiable;
@@ -15,7 +16,6 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'guru_id',
     ];
 
     protected $hidden = [
@@ -28,10 +28,11 @@ class User extends Authenticatable
         return $this->hasOne(WaliMurid::class);
     }
 
-    // Relasi User → Guru
+    // Relasi User → Guru (One to One)
+    // User sekarang memiliki 1 profil Guru (User::hasOne::Guru)
     public function guru()
     {
-        return $this->belongsTo(Guru::class, 'guru_id');
+        return $this->hasOne(Guru::class, 'user_id');
     }
 
     // User memberi penilaian (Evaluations)

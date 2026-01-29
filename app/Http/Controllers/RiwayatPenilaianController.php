@@ -18,7 +18,8 @@ class RiwayatPenilaianController extends Controller
      */
     public function index()
     {
-        $riwayat = FinalScore::with(['guru', 'period'])
+        $riwayat = FinalScore::with(['guru', 'period', 'recommendation'])
+            ->has('guru')
             ->orderBy('periode_id', 'desc')
             ->get();
 
@@ -34,36 +35,94 @@ class RiwayatPenilaianController extends Controller
         $periode = Period::findOrFail($periode_id);
 
         // 🔑 AMBIL SEMUA PENILAI (TANPA FILTER USER)
-        $rekap = Evaluation::where('guru_id', $guru_id)
-            ->where('periode_id', $periode_id)
-            ->selectRaw('
-                role_penilai,
-                COUNT(*) as jumlah_penilai,
-                ROUND(AVG(average_score), 2) as rata_rata
-            ')
-            ->groupBy('role_penilai')
-            ->get();
+        // 🔑 AMBIL SEMUA PENILAI (TANPA FILTER USER)
+        // (Moved after $evaluations processing to use calculated values)
 
-        // OPTIONAL: daftar penilai detail
-        $evaluations = Evaluation::with('penilai')
+        // OPTIONAL: daftar penilai detail (sertakan detail KPI untuk hitung nilai akhir per penilai)
+        $evaluations = Evaluation::with(['penilai', 'details.question.kpi'])
             ->where('guru_id', $guru_id)
             ->where('periode_id', $periode_id)
             ->get();
 
+        // Hitung nilai akhir per penilai: Σ(bobot indikator × nilai penilai / 5)
+        $evaluations = $evaluations->map(function ($e) {
+            $nilaiAkhir = 0;
+            
+            // Group details by Indicator ID to calculate average per indicator first
+            $detailsByIndicator = $e->details->groupBy(function($detail) {
+                return $detail->question->kpi_indicator_id ?? 0;
+            });
+
+            foreach ($detailsByIndicator as $indicatorId => $details) {
+                // Ambil bobot dari indicator (ambil dari salah satu detail)
+                $firstDetail = $details->first();
+                $bobot = $firstDetail->question->kpi->bobot ?? 0;
+                
+                // Hitung rata-rata nilai pertanyaan untuk indikator ini
+                $avgScore = $details->avg('nilai');
+                
+                // Tambahkan ke nilai akhir
+                $nilaiAkhir += $bobot * ($avgScore / 5);
+            }
+            
+            $e->nilai_akhir_penilai = round($nilaiAkhir, 2);
+            return $e;
+        });
+
+        // ⚖️ AMBIL BOBOT PENILAI
+        $jenisGuru = $guru->is_wali_kelas ? 'wali_kelas' : 'non_wali_kelas';
+        $bobotEvaluator = EvaluatorWeight::where('jenis_guru', $jenisGuru)->first();
+
+        // 📊 REKAP PER ROLE (RATA-RATA NILAI AKHIR * BOBOT)
+        $rekap = $evaluations->groupBy('role_penilai')->map(function ($group, $role) use ($bobotEvaluator) {
+            $count = $group->count();
+            $total = $group->sum('nilai_akhir_penilai');
+            $avg = $count > 0 ? $total / $count : 0; // Don't round yet
+
+            // Tentukan bobot berdasarkan role
+            $persentaseBobot = 0;
+            if ($bobotEvaluator) {
+                switch ($role) {
+                    case 'kepala_sekolah':
+                        $persentaseBobot = $bobotEvaluator->kepala_sekolah;
+                        break;
+                    case 'guru': // rekan guru
+                        $persentaseBobot = $bobotEvaluator->rekan_guru;
+                        break;
+                    case 'wali_murid':
+                        $persentaseBobot = $bobotEvaluator->wali_murid;
+                        break;
+                }
+            }
+
+            // Hitung nilai akhir weighted
+            $nilaiBerbobot = $avg * ($persentaseBobot / 100);
+
+            return (object) [
+                'role_penilai' => $role,
+                'jumlah_penilai' => $count,
+                'rata_rata' => round($nilaiBerbobot, 2)
+            ];
+        })->values();
+
         // 📊 Rekap per indikator (sesuai tabel contoh)
-        $indicators = KpiIndicator::all();
+        $indicators = KpiIndicator::where('is_active', true)->get();
 
         $indikatorRekap = [];
         $totalNilaiAkhir = 0;
 
-        // Tentukan jenis guru (wali_kelas / non_wali_kelas) untuk bobot evaluator
-        $jenisGuru = $guru->is_wali_kelas ? 'wali_kelas' : 'non_wali_kelas';
-        $bobot = EvaluatorWeight::where('jenis_guru', $jenisGuru)->first();
+        // Note: $bobotEvaluator already retrieved above
+        $bobot = $bobotEvaluator;
+
 
         if ($bobot && $indicators->isNotEmpty()) {
             foreach ($indicators as $indicator) {
                 // Rata-rata per role untuk indikator ini
-                $avgKepsek = EvaluationDetail::where('kpi_indicator_id', $indicator->id)
+                // Gunakan whereHas('question') karena kpi_indicator_id tidak ada lagi di tabel details
+                
+                $avgKepsek = EvaluationDetail::whereHas('question', function($q) use ($indicator) {
+                        $q->where('kpi_indicator_id', $indicator->id);
+                    })
                     ->whereHas('evaluation', function ($q) use ($guru_id, $periode_id) {
                         $q->where('guru_id', $guru_id)
                           ->where('periode_id', $periode_id)
@@ -71,7 +130,9 @@ class RiwayatPenilaianController extends Controller
                     })
                     ->avg('nilai') ?? 0;
 
-                $avgRekan = EvaluationDetail::where('kpi_indicator_id', $indicator->id)
+                $avgRekan = EvaluationDetail::whereHas('question', function($q) use ($indicator) {
+                        $q->where('kpi_indicator_id', $indicator->id);
+                    })
                     ->whereHas('evaluation', function ($q) use ($guru_id, $periode_id) {
                         $q->where('guru_id', $guru_id)
                           ->where('periode_id', $periode_id)
@@ -79,7 +140,9 @@ class RiwayatPenilaianController extends Controller
                     })
                     ->avg('nilai') ?? 0;
 
-                $avgWali = EvaluationDetail::where('kpi_indicator_id', $indicator->id)
+                $avgWali = EvaluationDetail::whereHas('question', function($q) use ($indicator) {
+                        $q->where('kpi_indicator_id', $indicator->id);
+                    })
                     ->whereHas('evaluation', function ($q) use ($guru_id, $periode_id) {
                         $q->where('guru_id', $guru_id)
                           ->where('periode_id', $periode_id)
@@ -124,7 +187,7 @@ class RiwayatPenilaianController extends Controller
         // Ambil SEMUA riwayat penilaian
         $evaluations = Evaluation::with([
             'penilai',
-            'details.kpi'
+            'details.question.kpi'
         ])
             ->where('guru_id', $guru_id)
             ->where('periode_id', $periode_id)

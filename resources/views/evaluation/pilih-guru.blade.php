@@ -9,7 +9,12 @@
         @foreach($gurus as $g)
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>{{ $g->nama }}</span>
-            <a href="{{ route('evaluation.create', $g->id) }}" class="btn btn-primary btn-sm">Nilai</a>
+            
+            @if(in_array($g->id, $evaluatedGuruIds ?? []))
+                <button class="btn btn-secondary btn-sm" disabled>Sudah Dinilai</button>
+            @else
+                <a href="{{ route('evaluation.create', $g->id) }}" class="btn btn-primary btn-sm">Nilai</a>
+            @endif
         </li>
         @endforeach
     </ul>

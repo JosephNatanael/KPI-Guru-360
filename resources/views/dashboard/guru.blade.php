@@ -11,8 +11,7 @@
                 <div class="card-body">
                     <h5 class="card-title">Informasi Guru</h5>
                     <p class="mb-1"><strong>Nama:</strong> {{ $guru->nama }}</p>
-                    <p class="mb-1"><strong>NIP:</strong> {{ $guru->nip ?? '-' }}</p>
-                    <p class="mb-0"><strong>Jabatan:</strong> {{ $jabatan }}</p>
+
                 </div>
             </div>
         </div>
@@ -83,61 +82,9 @@
         </div>
     </div>
 
-    {{-- 3️⃣ Ringkasan Kompetensi --}}
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Ringkasan Kompetensi</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-center h-100">
-                                <div class="card-body">
-                                    <h6 class="text-muted">Pedagogik</h6>
-                                    <h3 class="mb-0">{{ $kompetensiData['pedagogik'] }}</h3>
-                                    <small class="text-muted">Skala 1-5</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-center h-100">
-                                <div class="card-body">
-                                    <h6 class="text-muted">Kepribadian</h6>
-                                    <h3 class="mb-0">{{ $kompetensiData['kepribadian'] }}</h3>
-                                    <small class="text-muted">Skala 1-5</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-center h-100">
-                                <div class="card-body">
-                                    <h6 class="text-muted">Sosial</h6>
-                                    <h3 class="mb-0">{{ $kompetensiData['sosial'] }}</h3>
-                                    <small class="text-muted">Skala 1-5</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-center h-100">
-                                <div class="card-body">
-                                    <h6 class="text-muted">Profesional</h6>
-                                    <h3 class="mb-0">{{ $kompetensiData['profesional'] }}</h3>
-                                    <small class="text-muted">Skala 1-5</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <canvas id="chartKompetensi" height="80"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
-    {{-- 4️⃣ Penilaian 360 Derajat --}}
+    {{-- 3️⃣ Penilaian 360 Derajat --}}
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card">
@@ -152,7 +99,7 @@
                                     <h6 class="text-muted">Nilai Kepala Sekolah</h6>
                                     @if($nilaiKepalaSekolah > 0)
                                         <h2 class="mb-0">{{ number_format($nilaiKepalaSekolah, 2) }}</h2>
-                                        <small class="text-muted">Skala 1-5</small>
+                                        <small class="text-muted">Dari {{ $jumlahKepalaSekolah }} penilai</small>
                                     @else
                                         <h2 class="mb-0 text-muted">-</h2>
                                         <small class="text-muted">Belum dinilai</small>
@@ -192,6 +139,56 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 4️⃣ Ringkasan Kompetensi --}}
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Ringkasan Kompetensi</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Pedagogik</h6>
+                                    <h3 class="mb-0">{{ $kompetensiData['pedagogik'] }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Kepribadian</h6>
+                                    <h3 class="mb-0">{{ $kompetensiData['kepribadian'] }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Sosial</h6>
+                                    <h3 class="mb-0">{{ $kompetensiData['sosial'] }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="card text-center h-100">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Profesional</h6>
+                                    <h3 class="mb-0">{{ $kompetensiData['profesional'] }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <canvas id="chartKompetensi" height="80"></canvas>
                     </div>
                 </div>
             </div>
@@ -277,13 +274,13 @@
                         'rgba(54, 162, 235, 0.6)',
                         'rgba(75, 192, 192, 0.6)',
                         'rgba(255, 206, 86, 0.6)',
-                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(143, 60, 238, 0.6)',
                     ],
                     borderColor: [
                         'rgba(54, 162, 235, 1)',
                         'rgba(75, 192, 192, 1)',
                         'rgba(255, 206, 86, 1)',
-                        'rgba(255, 99, 132, 1)',
+                        'rgba(156, 35, 226, 1)',
                     ],
                     borderWidth: 1
                 }]
@@ -291,8 +288,7 @@
             options: {
                 scales: {
                     y: {
-                        beginAtZero: true,
-                        max: 5
+                        beginAtZero: true
                     }
                 },
                 plugins: {

@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\WaliMurid;
 use App\Models\Guru;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class WaliMuridController extends Controller
 {
@@ -24,18 +25,13 @@ class WaliMuridController extends Controller
      */
     public function create()
     {
-        // Ambil user yang berperan sebagai wali murid dan belum terhubung
-        $users = User::where('role', 'wali_murid')
-            ->whereDoesntHave('waliMurid')
-            ->get();
-
         // Ambil daftar kelas dari guru yang menjadi wali kelas (distinct)
         $kelasList = Guru::where('is_wali_kelas', 1)
             ->whereNotNull('kelas')
             ->distinct()
             ->pluck('kelas');
 
-        return view('wali-murid.create', compact('users', 'kelasList'));
+        return view('wali-murid.create', compact('kelasList'));
     }
 
     /**
@@ -44,16 +40,42 @@ class WaliMuridController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'user_id'   => 'required|exists:users,id|unique:wali_murids,user_id',
             'nama'      => 'required|string|max:191',
             'nama_anak' => 'required|string|max:191',
             'kelas'     => 'required|string|max:191',
+            // Email validation removed
         ]);
 
-        WaliMurid::create($request->only('user_id', 'nama', 'nama_anak', 'kelas'));
+        // Create User first with temporary email
+        $tempEmail = 'temp_' . uniqid() . '@wali.sekolah.id';
+        
+        $user = User::create([
+            'name' => $request->nama,
+            'email' => $tempEmail,
+            'password' => bcrypt('password'), // default password
+            'role' => 'wali_murid',
+        ]);
+
+        // Generate correct email: FirstnameLastnameInitial(ID)@gmail.com
+        // Misal: Joseph Morasa -> josephM(id)@gmail.com
+        $parts = explode(' ', trim($request->nama));
+        $firstName = strtolower($parts[0]);
+        $lastNameInitial = isset($parts[1]) ? strtoupper(substr($parts[1], 0, 1)) : '';
+        
+        $finalEmail = $firstName . $lastNameInitial . $user->id . '@gmail.com';
+        
+        $user->update(['email' => $finalEmail]);
+
+        // Create WaliMurid linked to User
+        WaliMurid::create([
+            'user_id'   => $user->id,
+            'nama'      => $request->nama,
+            'nama_anak' => $request->nama_anak,
+            'kelas'     => $request->kelas,
+        ]);
 
         return redirect()->route('wali-murid.index')
-            ->with('success', 'Data wali murid berhasil ditambahkan.');
+            ->with('success', 'Data wali murid berhasil ditambahkan. Akun dibuat dengan Email: ' . $finalEmail . ' dan Password: password.');
     }
 
     /**

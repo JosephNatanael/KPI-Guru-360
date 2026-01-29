@@ -1,0 +1,244 @@
+:root {
+    --primary-color: #4F46E5;
+    /* Indigo */
+    --primary-hover: #4338ca;
+    --secondary-color: #64748B;
+    /* Slate */
+    --success-color: #10B981;
+    /* Emerald */
+    --danger-color: #EF4444;
+    /* Red */
+    --warning-color: #F59E0B;
+    /* Amber */
+    --background-color: #F8FAFC;
+    /* Slate 50 */
+    --card-bg: #ffffff;
+    --text-main: #1E293B;
+    /* Slate 800 */
+    --text-muted: #64748B;
+    --border-color: #E2E8F0;
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+}
+
+body {
+    background-color: var(--background-color);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+h3,
+h4,
+h5 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--text-main);
+}
+
+/* Card Styling */
+.card-premium {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.3s ease;
+}
+
+.card-premium:hover {
+    box-shadow: var(--shadow-md);
+}
+
+.card-header-premium {
+    background-color: transparent;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.5rem;
+}
+
+.card-body-premium {
+    padding: 1.5rem;
+}
+
+/* Buttons */
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    font-weight: 500;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    transition: all 0.2s;
+}
+
+.btn-icon:hover {
+    transform: translateY(-1px);
+}
+
+/* Table Styling */
+.table-premium {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.table-premium thead th {
+    background-color: #F1F5F9;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.table-premium tbody td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+    color: var(--text-main);
+    font-size: 0.875rem;
+}
+
+.table-premium tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table-premium tbody tr:hover {
+    background-color: #F8FAFC;
+}
+
+/* Avatar */
+.avatar-circle {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #E0E7FF;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-right: 0.75rem;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+}
+
+/* Badges */
+.badge-role {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+}
+
+.badge-role.guru {
+    background-color: #D1FAE5;
+    color: #065F46;
+}
+
+.badge-role.kepala_sekolah {
+    background-color: #DBEAFE;
+    color: #1E40AF;
+}
+
+.badge-role.admin {
+    background-color: #F3E8FF;
+    color: #6B21A8;
+}
+
+.badge-role.wali_murid {
+    background-color: #FEF3C7;
+    color: #92400E;
+}
+
+/* Competency Badges */
+.badge-pedagogik {
+    background-color: rgba(54, 162, 235, 0.15);
+    color: rgb(24, 117, 180);
+    border: 1px solid rgba(54, 162, 235, 0.3);
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+}
+
+.badge-kepribadian {
+    background-color: rgba(75, 192, 192, 0.15);
+    color: rgb(34, 131, 131);
+    border: 1px solid rgba(75, 192, 192, 0.3);
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+}
+
+.badge-sosial {
+    background-color: rgba(255, 206, 86, 0.15);
+    color: rgb(151, 116, 27);
+    border: 1px solid rgba(255, 206, 86, 0.3);
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+}
+
+.badge-profesional {
+    background-color: rgba(143, 60, 238, 0.15);
+    color: rgb(90, 31, 158);
+    border: 1px solid rgba(143, 60, 238, 0.3);
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+}
+
+/* Pagination Customization */
+.page-link {
+    color: var(--text-muted);
+    border: none;
+    border-radius: 6px;
+    margin: 0 3px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.page-link:hover {
+    background-color: #F1F5F9;
+    color: var(--primary-color);
+}
+
+.page-item.active .page-link {
+    background-color: var(--primary-color);
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4);
+}
+
+.page-item:first-child .page-link,
+.page-item:last-child .page-link {
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+}

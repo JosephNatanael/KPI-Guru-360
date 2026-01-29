@@ -11,6 +11,7 @@ class KpiQuestion extends Model
 
     protected $fillable = [
         'kpi_indicator_id',
+        'periode_id',
         'pertanyaan',
         'urutan',
     ];
@@ -18,5 +19,10 @@ class KpiQuestion extends Model
     public function kpi()
     {
         return $this->belongsTo(KpiIndicator::class, 'kpi_indicator_id');
+    }
+
+    public function period()
+    {
+        return $this->belongsTo(Period::class, 'periode_id');
     }
 }

@@ -2,6 +2,7 @@
 
 @section('content')
 <div class="container">
+    
     <h3>Tambah Rekomendasi</h3>
 
     @if($errors->any())
@@ -19,6 +20,9 @@
     </form>
 </div>
 @endsection
+
+
+
 
 
 

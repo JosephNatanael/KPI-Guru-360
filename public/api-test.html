@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPI-360-Guru API Tester</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .response-box {
+            background: #f8f9fa;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .token-display {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+            word-break: break-all;
+        }
+
+        .token-display strong {
+            color: #856404;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box p {
+            margin: 5px 0;
+            color: #0c5460;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 KPI-360-Guru API Tester</h1>
+            <p>Test your Laravel Sanctum API endpoints</p>
+        </div>
+
+        <!-- Info Box -->
+        <div class="card">
+            <div class="info-box">
+                <p><strong>📍 Base URL:</strong> http://localhost:8000/api</p>
+                <p><strong>🔐 Authentication:</strong> Laravel Sanctum (Token-based)</p>
+                <p><strong>✅ Status:</strong> <span id="serverStatus">Checking...</span></p>
+            </div>
+        </div>
+
+        <!-- Login Section -->
+        <div class="card">
+            <h2 class="section-title">1️⃣ Login API Test</h2>
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" value="test@example.com" placeholder="Enter email">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" value="password" placeholder="Enter password">
+            </div>
+            <button class="btn" onclick="testLogin()">🔑 Test Login</button>
+            
+            <div id="loginResponse"></div>
+        </div>
+
+        <!-- Get User Section -->
+        <div class="card">
+            <h2 class="section-title">2️⃣ Get User Profile Test</h2>
+            <div id="tokenDisplay" class="token-display" style="display: none;">
+                <strong>Current Token:</strong> <span id="currentToken"></span>
+            </div>
+            <button class="btn btn-success" onclick="testGetUser()" id="getUserBtn" disabled>
+                👤 Get User Profile
+            </button>
+            
+            <div id="userResponse"></div>
+        </div>
+
+        <!-- Logout Section -->
+        <div class="card">
+            <h2 class="section-title">3️⃣ Logout API Test</h2>
+            <button class="btn btn-secondary" onclick="testLogout()" id="logoutBtn" disabled>
+                🚪 Test Logout
+            </button>
+            
+            <div id="logoutResponse"></div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = null;
+        const API_BASE = 'http://localhost:8000/api';
+
+        // Check server status on load
+        window.onload = async function() {
+            try {
+                const response = await fetch(API_BASE + '/login', {
+                    method: 'OPTIONS'
+                });
+                document.getElementById('serverStatus').textContent = '✅ Server is running';
+                document.getElementById('serverStatus').style.color = '#28a745';
+            } catch (error) {
+                document.getElementById('serverStatus').textContent = '❌ Server is not running';
+                document.getElementById('serverStatus').style.color = '#dc3545';
+            }
+        };
+
+        async function testLogin() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const responseDiv = document.getElementById('loginResponse');
+
+            responseDiv.innerHTML = '<p style="color: #666;">⏳ Loading...</p>';
+
+            try {
+                const response = await fetch(API_BASE + '/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    authToken = data.token;
+                    
+                    // Enable other buttons
+                    document.getElementById('getUserBtn').disabled = false;
+                    document.getElementById('logoutBtn').disabled = false;
+                    
+                    // Show token
+                    document.getElementById('tokenDisplay').style.display = 'block';
+                    document.getElementById('currentToken').textContent = authToken;
+
+                    responseDiv.innerHTML = `
+                        <span class="status success">✅ Success (${response.status})</span>
+                        <div class="response-box">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    responseDiv.innerHTML = `
+                        <span class="status error">❌ Error (${response.status})</span>
+                        <div class="response-box">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `
+                    <span class="status error">❌ Network Error</span>
+                    <div class="response-box">${error.message}</div>
+                `;
+            }
+        }
+
+        async function testGetUser() {
+            const responseDiv = document.getElementById('userResponse');
+
+            if (!authToken) {
+                responseDiv.innerHTML = '<p style="color: #dc3545;">⚠️ Please login first!</p>';
+                return;
+            }
+
+            responseDiv.innerHTML = '<p style="color: #666;">⏳ Loading...</p>';
+
+            try {
+                const response = await fetch(API_BASE + '/user', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    responseDiv.innerHTML = `
+                        <span class="status success">✅ Success (${response.status})</span>
+                        <div class="response-box">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    responseDiv.innerHTML = `
+                        <span class="status error">❌ Error (${response.status})</span>
+                        <div class="response-box">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `
+                    <span class="status error">❌ Network Error</span>
+                    <div class="response-box">${error.message}</div>
+                `;
+            }
+        }
+
+        async function testLogout() {
+            const responseDiv = document.getElementById('logoutResponse');
+
+            if (!authToken) {
+                responseDiv.innerHTML = '<p style="color: #dc3545;">⚠️ Please login first!</p>';
+                return;
+            }
+
+            responseDiv.innerHTML = '<p style="color: #666;">⏳ Loading...</p>';
+
+            try {
+                const response = await fetch(API_BASE + '/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Clear token
+                    authToken = null;
+                    
+                    // Disable buttons
+                    document.getElementById('getUserBtn').disabled = true;
+                    document.getElementById('logoutBtn').disabled = true;
+                    document.getElementById('tokenDisplay').style.display = 'none';
+
+                    responseDiv.innerHTML = `
+                        <span class="status success">✅ Success (${response.status})</span>
+                        <div class="response-box">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                } else {
+                    responseDiv.innerHTML = `
+                        <span class="status error">❌ Error (${response.status})</span>
+                        <div class="response-box">${JSON.stringify(data, null, 2)}</div>
+                    `;
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `
+                    <span class="status error">❌ Network Error</span>
+                    <div class="response-box">${error.message}</div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

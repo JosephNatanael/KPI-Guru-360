@@ -11,7 +11,7 @@ class EvaluationDetail extends Model
 
     protected $fillable = [
         'evaluation_id',
-        'kpi_indicator_id',
+        'kpi_question_id',
         'nilai',
     ];
 
@@ -20,13 +20,8 @@ class EvaluationDetail extends Model
         return $this->belongsTo(Evaluation::class);
     }
 
-    public function indicator()
+    public function question()
     {
-        return $this->belongsTo(KpiIndicator::class, 'kpi_indicator_id');
-    }
-
-    public function kpi()
-    {
-        return $this->belongsTo(KpiIndicator::class, 'kpi_indicator_id');
+        return $this->belongsTo(KpiQuestion::class, 'kpi_question_id');
     }
 }

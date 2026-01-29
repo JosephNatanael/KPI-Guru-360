@@ -9,7 +9,7 @@ class RecommendationController extends Controller
 {
     public function index()
     {
-        $recommendations = Recommendation::orderBy('min_score', 'desc')->paginate(10);
+        $recommendations = Recommendation::orderBy('min_score', 'asc')->paginate(10);
         return view('recommendations.index', compact('recommendations'));
     }
 
@@ -23,9 +23,23 @@ class RecommendationController extends Controller
         $data = $request->validate([
             'nama'       => 'required|string|max:191',
             'min_score'  => 'required|numeric|min:0|max:100',
-            'max_score'  => 'required|numeric|min:0|max:100|gte:min_score',
+            'max_score'  => 'required|numeric|min:0|max:101|gt:min_score',
             'keterangan' => 'nullable|string',
         ]);
+
+        // 🔴 CEK OVERLAP RANGE (min inklusif, max eksklusif)
+        $overlap = Recommendation::where(function ($q) use ($data) {
+            $q->where('min_score', '<', $data['max_score'])
+              ->where('max_score', '>', $data['min_score']);
+        })->exists();
+
+        if ($overlap) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'min_score' => 'Range nilai bertabrakan dengan rekomendasi lain.',
+                ]);
+        }
 
         Recommendation::create($data);
 
@@ -43,9 +57,24 @@ class RecommendationController extends Controller
         $data = $request->validate([
             'nama'       => 'required|string|max:191',
             'min_score'  => 'required|numeric|min:0|max:100',
-            'max_score'  => 'required|numeric|min:0|max:100|gte:min_score',
+            'max_score'  => 'required|numeric|min:0|max:101|gt:min_score',
             'keterangan' => 'nullable|string',
         ]);
+
+        // 🔴 CEK OVERLAP RANGE (kecuali data sendiri)
+        $overlap = Recommendation::where('id', '!=', $recommendation->id)
+            ->where(function ($q) use ($data) {
+                $q->where('min_score', '<', $data['max_score'])
+                  ->where('max_score', '>', $data['min_score']);
+            })->exists();
+
+        if ($overlap) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'min_score' => 'Range nilai bertabrakan dengan rekomendasi lain.',
+                ]);
+        }
 
         $recommendation->update($data);
 
@@ -61,8 +90,3 @@ class RecommendationController extends Controller
             ->with('success', 'Rekomendasi berhasil dihapus.');
     }
 }
-
-
-
-
-

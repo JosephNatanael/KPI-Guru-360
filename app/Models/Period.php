@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Period extends Model
 {
     protected $fillable = [
+        'nama_periode',
         'tahun_ajaran',
         'semester',
         'tanggal_mulai',
@@ -28,6 +29,14 @@ class Period extends Model
     public function evaluations()
     {
         return $this->hasMany(Evaluation::class, 'periode_id');
+    }
+
+    /**
+     * Relasi: satu periode memiliki banyak pertanyaan KPI
+     */
+    public function questions()
+    {
+        return $this->hasMany(KpiQuestion::class, 'periode_id');
     }
 
     /**

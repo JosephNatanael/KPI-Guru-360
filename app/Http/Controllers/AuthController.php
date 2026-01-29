@@ -32,24 +32,7 @@ class AuthController extends Controller
             }
             
             if ($user->role === 'wali_murid') {
-                // Cari data wali murid berdasarkan user_id
-                $wali = WaliMurid::where('user_id', $user->id)->first();
-                
-                if ($wali) {
-                    // Cari guru wali kelas sesuai kelas anak
-                    $guruWaliKelas = Guru::where('is_wali_kelas', 1)
-                        ->where('kelas', $wali->kelas)
-                        ->first();
-                    
-                    if ($guruWaliKelas) {
-                        // Langsung arahkan ke form penilaian wali kelas tersebut
-                        return redirect()->route('evaluation.create', $guruWaliKelas->id);
-                    }
-                }
-                
-                // Jika tidak ada wali kelas, redirect ke evaluation index
-                return redirect()->route('evaluation.index')
-                    ->with('info', 'Guru wali kelas untuk kelas anak Anda belum diatur. Silakan hubungi admin.');
+                return redirect()->route('evaluation.index');
             }
             
             // Kepala sekolah dan role lain → dashboard

@@ -5,7 +5,7 @@
     <h4>Riwayat Penilaian Kinerja Guru</h4>
 
     <table class="table table-bordered mt-3">
-        <thead>
+        <thead class="table-primary">
             <tr>
                 <th>Guru</th>
                 <th>Periode</th>
@@ -20,14 +20,7 @@
                 <td>{{ $item->guru->nama }}</td>
                 <td>{{ $item->period->nama ?? 'Periode '.$item->periode_id }}</td>
                 <td>{{ $item->nilai_akhir }}</td>
-                <td>
-                    @switch($item->rekomendasi)
-                        @case('promosi') Sangat Baik @break
-                        @case('pelatihan') Baik @break
-                        @case('evaluasi') Cukup @break
-                        @case('pembinaan') Perlu Pembinaan @break
-                    @endswitch
-                </td>
+                <td>{{ $item->recommendation->nama ?? '-' }}</td>
                 <td>
                     <a href="{{ route('riwayat.penilaian.detail', [
                         $item->guru_id,

@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('nama_periode');
             $table->date('tanggal_mulai');
             $table->date('tanggal_selesai');
-            $table->enum('status', ['open', 'closed'])->default('open');
+            $table->enum('status', ['aktif', 'nonaktif', 'open', 'closed'])->default('aktif');
             $table->timestamps();
         });
     }

@@ -13,6 +13,7 @@ class KpiIndicator extends Model
         'nama',
         'kompetensi',
         'bobot',
+        'is_active',
     ];
 
     public function details()

@@ -29,14 +29,16 @@
         <table class="table table-sm">
             <thead>
                 <tr>
-                    <th>KPI</th>
+                    <th>Indikator KPI</th>
+                    <th>Pertanyaan</th>
                     <th>Nilai</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($e->details as $d)
                 <tr>
-                    <td>{{ $d->kpi->nama ?? '-' }}</td>
+                    <td>{{ $d->question->kpi->nama ?? '-' }}</td>
+                    <td>{{ $d->question->pertanyaan ?? '-' }}</td>
                     <td>{{ $d->nilai }}</td>
                 </tr>
                 @endforeach

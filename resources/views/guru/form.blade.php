@@ -3,10 +3,7 @@
     <input type="text" name="nama" class="form-control" value="{{ old('nama', $guru->nama ?? '') }}">
 </div>
 
-<div class="mb-3">
-    <label>NIP</label>
-    <input type="text" name="nip" class="form-control" value="{{ old('nip', $guru->nip ?? '') }}">
-</div>
+
 
 <div class="mb-3">
     <label>Wali Kelas?</label>

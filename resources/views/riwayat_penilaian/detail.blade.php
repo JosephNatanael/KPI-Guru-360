@@ -19,7 +19,7 @@
         <tr>
             <th>Role Penilai</th>
             <th>Jumlah Penilai</th>
-            <th>Rata-rata Nilai</th>
+            <th>Nilai Akhir Per Role</th>
         </tr>
     </thead>
     <tbody>
@@ -42,7 +42,7 @@
         <tr>
             <th>Nama Penilai</th>
             <th>Role</th>
-            <th>Nilai</th>
+            <th>Nilai Akhir Penilai (Σ Bobot × Nilai / 5)</th>
         </tr>
     </thead>
     <tbody>
@@ -50,7 +50,7 @@
             <tr>
                 <td>{{ $e->penilai->name ?? '-' }}</td>
                 <td>{{ ucfirst(str_replace('_',' ', $e->role_penilai)) }}</td>
-                <td>{{ $e->average_score }}</td>
+                <td>{{ $e->nilai_akhir_penilai ?? '-' }}</td>
             </tr>
         @endforeach
     </tbody>

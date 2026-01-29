@@ -10,7 +10,8 @@ class PeriodController extends Controller
     public function index()
     {
         $periods = Period::latest()->paginate(10);
-        return view('period.index', compact('periods'));
+        $activePeriod = Period::where('status', 'aktif')->first();
+        return view('period.index', compact('periods', 'activePeriod'));
     }
 
     public function create()
