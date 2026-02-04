@@ -25,7 +25,7 @@
 </div>
 
 <button type="submit" class="btn btn-primary">Simpan</button>
-<a href="{{ route('recommendations.index') }}" class="btn btn-secondary">Batal</a>
+<a href="{{ route('recommendations.index') }}" class="btn btn-secondary">Batalkan</a>
 
 
 

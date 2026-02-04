@@ -26,7 +26,17 @@ class GuruController extends Controller
             'nama' => 'required',
             // nip removed
             'is_wali_kelas' => 'required|boolean',
-            'kelas' => 'nullable',
+            'kelas' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->is_wali_kelas == 1 && $value) {
+                        $exists = Guru::where('kelas', $value)->exists();
+                        if ($exists) {
+                            $fail('Kelas '.$value.' sudah memiliki Wali Kelas. Silakan pilih kelas lain atau edit data Wali Kelas yang ada.');
+                        }
+                    }
+                },
+            ],
         ]);
 
         try {
@@ -37,13 +47,17 @@ class GuruController extends Controller
             // Create user for the guru
             // Generate dummy email from name
             $emailName = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $guru->nama));
-            \App\Models\User::create([
+            $user = \App\Models\User::create([
                 'name' => $guru->nama,
                 'email' => $emailName . rand(10,99) . '@gmail.com',
                 'password' => bcrypt('password123'), // Default logic changed
                 'role' => 'guru',
-                'guru_id' => $guru->id,
+                // 'guru_id' => $guru->id, // Assuming users table might not have guru_id, but if it does, keep it.
+                // But primarily we need to link the Guru to the User.
             ]);
+
+            // UPDATE Guru with User ID
+            $guru->update(['user_id' => $user->id]);
 
             DB::commit();
 
@@ -67,7 +81,19 @@ class GuruController extends Controller
             'nama' => 'required',
             // nip removed
             'is_wali_kelas' => 'required|boolean',
-            'kelas' => 'nullable',
+            'kelas' => [
+                'nullable',
+                function ($attribute, $value, $fail) use ($request, $guru) {
+                    if ($request->is_wali_kelas == 1 && $value) {
+                        $exists = Guru::where('kelas', $value)
+                            ->where('id', '!=', $guru->id)
+                            ->exists();
+                        if ($exists) {
+                            $fail('Kelas '.$value.' sudah memiliki Wali Kelas.');
+                        }
+                    }
+                },
+            ],
         ]);
 
         try {
@@ -93,9 +119,24 @@ class GuruController extends Controller
     public function destroy(Guru $guru)
     {
         try {
-            $guru->delete();
-            return redirect()->route('guru.index')->with('success','Guru berhasil dihapus');
+            DB::beginTransaction();
+
+            // Ambil user terkait sebelum guru dihapus
+            $user = $guru->user;
+
+            // Hapus Permanen Guru (bypass SoftDeletes)
+            $guru->forceDelete();
+
+            // Hapus User jika ada
+            if ($user) {
+                $user->delete();
+            }
+
+            DB::commit();
+
+            return redirect()->route('guru.index')->with('success','Guru dan Akun User berhasil dihapus permanen');
         } catch (\Exception $e) {
+            DB::rollBack();
             return redirect()->route('guru.index')->with('error', 'Gagal menghapus guru: ' . $e->getMessage());
         }
     }

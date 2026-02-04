@@ -2,13 +2,17 @@
 
 @section('content')
 <div class="container">
-    <h4>Riwayat Penilaian Kinerja Guru</h4>
+    <h4>
+        Riwayat Penilaian Kinerja Guru <br>
+        <small class="text-muted fs-6">
+            Periode Aktif: {{ $activePeriod->tahun_ajaran ?? '-' }} ({{ ucfirst($activePeriod->semester ?? '-') }})
+        </small>
+    </h4>
 
     <table class="table table-bordered mt-3">
         <thead class="table-primary">
             <tr>
                 <th>Guru</th>
-                <th>Periode</th>
                 <th>Nilai Akhir</th>
                 <th>Rekomendasi</th>
                 <th>Detail</th>
@@ -18,7 +22,6 @@
         @foreach ($riwayat as $item)
             <tr>
                 <td>{{ $item->guru->nama }}</td>
-                <td>{{ $item->period->nama ?? 'Periode '.$item->periode_id }}</td>
                 <td>{{ $item->nilai_akhir }}</td>
                 <td>{{ $item->recommendation->nama ?? '-' }}</td>
                 <td>

@@ -2,9 +2,14 @@
 
 @section('content')
 
-<h4>
-    Riwayat Lengkap Penilaian
-</h4>
+<div class="position-relative mb-3 text-center">
+    <a href="{{ route('riwayat.penilaian.detail', [$guru->id, $periode->id]) }}" class="btn btn-secondary position-absolute start-0 top-0">
+        <i class="bi bi-arrow-left"></i> Kembali
+    </a>
+    <h4 class="mb-0 d-inline-block pt-1">
+        Riwayat Lengkap Penilaian
+    </h4>
+</div>
 
 <p>
     <strong>Guru:</strong> {{ $guru->nama }} <br>

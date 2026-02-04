@@ -6,8 +6,8 @@
 
     {{-- 1️⃣ Informasi Umum --}}
     <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Informasi Guru</h5>
                     <p class="mb-1"><strong>Nama:</strong> {{ $guru->nama }}</p>
@@ -15,23 +15,58 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
                 <div class="card-body">
-                    <h5 class="card-title">Periode & Status Penilaian</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="card-title mb-0">Periode</h5>
+                         <form action="{{ route('dashboard.guru') }}" method="GET" class="d-flex align-items-center">
+                            <select name="periode_id" class="form-select form-select-sm" onchange="this.form.submit()" style="max-width: 150px;">
+                                @foreach($allPeriods as $p)
+                                    <option value="{{ $p->id }}" {{ $periode && $periode->id == $p->id ? 'selected' : '' }}>
+                                        {{ $p->tahun_ajaran }} - {{ ucfirst($p->semester) }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </form>
+                    </div>
+
                     @if($periode)
-                        <p class="mb-1"><strong>Tahun Ajaran:</strong> {{ $periode->tahun_ajaran }}</p>
-                        <p class="mb-1"><strong>Semester:</strong> {{ ucfirst($periode->semester) }}</p>
-                        <p class="mb-1"><strong>Tanggal:</strong> {{ $periode->tanggal_mulai }} s/d {{ $periode->tanggal_selesai }}</p>
+                        <p class="mb-1">{{ $periode->tahun_ajaran }} - {{ ucfirst($periode->semester) }}</p>
                         <p class="mb-0">
-                            <strong>Status:</strong> 
                             <span class="badge {{ $statusPenilaian == 'Sudah Dinilai' ? 'bg-success' : 'bg-warning' }}">
                                 {{ $statusPenilaian }}
                             </span>
                         </p>
                     @else
-                        <p class="mb-0 text-muted">Belum ada periode aktif</p>
+                        <p class="mb-0 text-muted">Non-Aktif</p>
                     @endif
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card text-bg-success mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">Rekan Sudah Dinilai</h5>
+                            <small class="card-text">Guru</small>
+                        </div>
+                        <h3 class="mb-0">{{ $rekanSudahDinilaiCount }}</h3>
+                    </div>
+                    <a href="javascript:void(0)" class="stretched-link" data-bs-toggle="modal" data-bs-target="#modalRekanSudah"></a>
+                </div>
+            </div>
+            <div class="card text-bg-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h5 class="card-title mb-0">Rekan Belum Dinilai</h5>
+                            <small class="card-text">Guru</small>
+                        </div>
+                        <h3 class="mb-0">{{ $rekanBelumDinilaiCount }}</h3>
+                    </div>
+                    <a href="javascript:void(0)" class="stretched-link" data-bs-toggle="modal" data-bs-target="#modalRekanBelum"></a>
                 </div>
             </div>
         </div>
@@ -195,7 +230,63 @@
         </div>
     </div>
 
-    {{-- 5️⃣ Riwayat Penilaian --}}
+    {{-- 5️⃣ Status Penilaian Rekan Sejawat (Moved to Top) --}}
+    
+    <!-- Modal Rekan Sudah Dinilai -->
+    <div class="modal fade" id="modalRekanSudah" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rekan Sudah Dinilai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group">
+                        @forelse($rekanSudahDinilaiList as $r)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ $r['nama'] }}
+                                <span class="badge bg-primary">{{ number_format($r['nilai'], 2) }}</span>
+                            </li>
+                        @empty
+                            <li class="list-group-item text-center text-muted">Belum ada rekan yang dinilai.</li>
+                        @endforelse
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <a href="{{ route('evaluation.index') }}" class="btn btn-primary">Ke Halaman Penilaian</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Rekan Belum Dinilai -->
+    <div class="modal fade" id="modalRekanBelum" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Rekan Belum Dinilai</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group">
+                        @forelse($rekanBelumDinilaiList as $r)
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ $r['nama'] }}
+                                <span class="badge bg-secondary">{{ $r['kelas'] }}</span>
+                            </li>
+                        @empty
+                            <li class="list-group-item text-center text-muted">Semua rekan sudah dinilai.</li>
+                        @endforelse
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <a href="{{ route('evaluation.index') }}" class="btn btn-primary">Mulai Penilaian</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{-- 6️⃣ Riwayat Penilaian --}}
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card">

@@ -42,7 +42,19 @@ class UserController extends Controller
         // Add validation for Guru profile fields
         if ($request->role === 'guru') {
             // NIP removed
-            $rules['kelas'] = 'nullable|string|max:10';
+            $rules['kelas'] = [
+                'nullable', 
+                'string', 
+                'max:10',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($request->has('is_wali_kelas') && $value) {
+                        $exists = Guru::where('kelas', $value)->exists();
+                        if ($exists) {
+                            $fail('Kelas '.$value.' sudah memiliki Wali Kelas.');
+                        }
+                    }
+                }
+            ];
         }
 
         // Add validation for WaliMurid profile fields
@@ -126,7 +138,22 @@ class UserController extends Controller
         // Add validation for Guru profile fields
         if ($request->role === 'guru') {
             // NIP removed
-            $rules['kelas'] = 'nullable|string|max:10';
+            $rules['kelas'] = [
+                'nullable', 
+                'string', 
+                'max:10',
+                function ($attribute, $value, $fail) use ($request, $user) {
+                    if ($request->has('is_wali_kelas') && $value) {
+                        $query = Guru::where('kelas', $value);
+                        if ($user->guru) {
+                            $query->where('id', '!=', $user->guru->id);
+                        }
+                        if ($query->exists()) {
+                            $fail('Kelas '.$value.' sudah memiliki Wali Kelas.');
+                        }
+                    }
+                }
+            ];
         }
 
         // Add validation for WaliMurid profile fields

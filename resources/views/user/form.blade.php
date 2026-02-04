@@ -41,9 +41,12 @@
 
     <div class="mb-3" id="kelasBox" style="display:none">
         <label>Kelas</label>
-        <input type="text" name="kelas" class="form-control" 
+        <input type="text" name="kelas" class="form-control @error('kelas') is-invalid @enderror" 
                value="{{ old('kelas', $user->guru->kelas ?? '') }}"
-               placeholder="Contoh: 7A, 8B">
+               placeholder="Contoh: 1 SD, TK A, 1 SMP ">
+        @error('kelas')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
     </div>
 </div>
 

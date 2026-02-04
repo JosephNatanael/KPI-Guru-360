@@ -7,6 +7,7 @@
         @csrf
         @include('guru.form')
         <button class="btn btn-primary">Simpan</button>
+        <a href="{{ route('guru.index') }}" class="btn btn-secondary">Batalkan</a>
     </form>
 </div>
 @endsection

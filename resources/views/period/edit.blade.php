@@ -9,6 +9,7 @@
         @include('period.form')
 
         <button class="btn btn-success">Update</button>
+        <a href="{{ route('period.index') }}" class="btn btn-secondary ms-2">Batalkan</a>
     </form>
 </div>
 @endsection

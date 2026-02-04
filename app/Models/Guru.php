@@ -14,6 +14,7 @@ class Guru extends Model
         'nama',
         'is_wali_kelas',
         'kelas',
+        'user_id',
     ];
 
     // Relasi Guru → User

@@ -2,9 +2,14 @@
 
 @section('content')
 
-<h4>
-    Detail Penilaian Guru: {{ $guru->nama }}
-</h4>
+<div class="position-relative mb-3 text-center">
+    <a href="{{ route('riwayat.penilaian') }}" class="btn btn-secondary position-absolute start-0 top-0">
+        <i class="bi bi-arrow-left"></i> Kembali
+    </a>
+    <h4 class="mb-0 d-inline-block pt-1">
+        Detail Penilaian Guru: {{ $guru->nama }}
+    </h4>
+</div>
 
 <p>
     Periode: {{ $periode->nama ?? $periode->id }}
@@ -58,7 +63,12 @@
 
 <hr>
 
-<h5>Rekap Per Indikator (360°)</h5>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0">Rekap Per Indikator (360°)</h5>
+    <a href="{{ route('riwayat.penilaian.penilai', [$guru->id, $periode->id]) }}" class="btn btn-info btn-sm">
+        <i class="bi bi-clock-history"></i> Lihat Riwayat Lengkap Penilai
+    </a>
+</div>
 
 @if(!empty($indikatorRekap))
     <table class="table table-bordered">
@@ -99,13 +109,6 @@
     <p class="text-muted">Belum ada data rekap per indikator.</p>
 @endif
 
-<a href="{{ route('riwayat.penilaian.penilai', [
-        $guru->id,
-        $periode->id
-    ]) }}"
-   class="btn btn-info mb-3">
-    <i class="bi bi-clock-history"></i>
-    Lihat Riwayat Lengkap Penilai
-</a>
+
 
 @endsection

@@ -7,6 +7,7 @@
         @csrf @method('PUT')
         @include('guru.form')
         <button class="btn btn-success">Update</button>
+        <a href="{{ route('guru.index') }}" class="btn btn-secondary ms-2">Batalkan</a>
     </form>
 </div>
 @endsection

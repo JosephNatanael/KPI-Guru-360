@@ -18,12 +18,20 @@ class RiwayatPenilaianController extends Controller
      */
     public function index()
     {
-        $riwayat = FinalScore::with(['guru', 'period', 'recommendation'])
-            ->has('guru')
-            ->orderBy('periode_id', 'desc')
-            ->get();
+        // Ambil periode aktif
+        $activePeriod = Period::where('status', 'aktif')->first();
 
-        return view('riwayat_penilaian.index', compact('riwayat'));
+        if (!$activePeriod) {
+            $riwayat = collect([]); // Kosongkan jika tidak ada periode aktif
+        } else {
+            $riwayat = FinalScore::with(['guru', 'period', 'recommendation'])
+                ->has('guru')
+                ->where('periode_id', $activePeriod->id) // Filter hanya periode aktif
+                ->orderBy('nilai_akhir', 'desc') // Urutkan berdasarkan nilai tertinggi (opsional)
+                ->get();
+        }
+
+        return view('riwayat_penilaian.index', compact('riwayat', 'activePeriod'));
     }
 
     /**

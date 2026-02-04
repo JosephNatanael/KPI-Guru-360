@@ -53,7 +53,7 @@
         </div>
 
         <button type="submit" class="btn btn-primary">Update</button>
-        <a href="{{ route('wali-murid.index') }}" class="btn btn-secondary">Kembali</a>
+        <a href="{{ route('wali-murid.index') }}" class="btn btn-secondary">Batalkan</a>
     </form>
 </div>
 @endsection

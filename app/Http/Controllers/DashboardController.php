@@ -35,7 +35,17 @@ class DashboardController extends Controller
             abort(403, 'Akses ditolak. Hanya kepala sekolah atau admin yang dapat mengakses dashboard ini.');
         }
         
-        $periode = Period::where('status', 'aktif')->first();
+        // Cek request filter
+    $periodeId = request('periode_id');
+        if ($periodeId) {
+            $periode = Period::find($periodeId);
+        } else {
+            $periode = Period::where('status', 'aktif')->first();
+            // Jika tidak ada yang aktif, ambil yang terakhir
+            if (!$periode) {
+                $periode = Period::latest('tanggal_mulai')->first();
+            }
+        }
 
         if (!$periode) {
             return view('dashboard.index', [
@@ -50,6 +60,14 @@ class DashboardController extends Controller
                 'kategoriLabels' => [],
                 'kategoriCounts' => [],
                 'recommendations' => [],
+                'guruSudahDinilaiList' => [],
+                'guruBelumDinilaiList' => [],
+                'guruBerprestasiList' => [],
+                'allPeriods' => [],
+                'progressPercentage' => 0,
+                'readyTeacherCount' => 0,
+                'trendLabels' => [],
+                'trendData' => [],
             ]);
         }
 
@@ -61,22 +79,145 @@ class DashboardController extends Controller
             ->has('guru')
             ->where('periode_id', $periode->id)
             ->get();
+
+        // 0️⃣ Filter Periode & Trend Data
+        $allPeriods = Period::orderBy('tanggal_mulai', 'desc')->get();
         
+        // --- LOGIKA PROGRESS PENILAIAN ---
+        // --- LOGIKA PROGRESS PENILAIAN (Task Based) ---
+        
+        // 1. Kepala Sekolah
+        // Target: Menilai SEMUA guru aktif
+        $jumlahKepsek = \App\Models\User::where('role','kepala_sekolah')->count();
+
+$countKepsekTotal = $totalGuru * $jumlahKepsek;
+
+$countKepsekDone = Evaluation::where('periode_id', $periode->id)
+    ->where('role_penilai', 'kepala_sekolah')
+    ->whereHas('guru')
+    ->count(); // 1 kepala sekolah = 1 tugas
+
+        
+        // 2. Rekan Guru (360)
+        // Target: Setiap guru menilai semua guru LAINNYA.
+        // Total Tugas = Total Guru * (Total Guru - 1)
+        // Jika cuma 1 guru, tugas = 0.
+        $countGuruTotal = $totalGuru > 1 ? $totalGuru * ($totalGuru - 1) : 0;
+        $countGuruDone = Evaluation::where('periode_id', $periode->id)
+            ->where('role_penilai', 'guru')
+            ->whereHas('guru')
+            ->count(); // Tetap hitung total row, asumsi aplikasi prevent duplicate entry
+
+        // 3. Wali Murid
+        // Target: Setiap Wali Murid menilai 1 Guru (Wali Kelasnya)
+        // Kita asumsikan jumlah tugas = jumlah akun wali murid aktif
+        $totalWaliMurid = \App\Models\WaliMurid::count(); // Gunakan model WaliMurid
+        $countWaliTotal = $totalWaliMurid;
+        $countWaliDone = Evaluation::where('periode_id', $periode->id)
+            ->where('role_penilai', 'wali_murid')
+            ->whereHas('guru')
+            ->distinct('penilai_id') // Satu wali murid hanya boleh dihitung 1x (jika sistem 1-to-1)
+            ->count('penilai_id');
+            
+        // Hitung Persentase Per Role
+        $progressKepsek = $countKepsekTotal > 0 ? round(($countKepsekDone / $countKepsekTotal) * 100) : ($countKepsekTotal == 0 ? 100 : 0);
+        $progressGuru   = $countGuruTotal > 0   ? round(($countGuruDone / $countGuruTotal) * 100)   : ($countGuruTotal == 0 ? 100 : 0);
+        $progressWali   = $countWaliTotal > 0   ? round(($countWaliDone / $countWaliTotal) * 100)   : ($countWaliTotal == 0 ? 100 : 0);
+
+        // Hitung Overall Progress
+        // Total Tasks
+        $grandTotalTask = $countKepsekTotal + $countGuruTotal + $countWaliTotal;
+        $grandTotalDone = $countKepsekDone + $countGuruDone + $countWaliDone;
+        
+        $progressPercentage = $grandTotalTask > 0 ? round(($grandTotalDone / $grandTotalTask) * 100) : 0;
+        
+        // Unused legacy counter, but kept if view needs it (logic changed to pure task count)
+        $readyTeacherCount = 0; // Not used in new logic, but var might be needed by view if logic persists?
+        // View uses readyTeacherCount? checked view: used in old progress bar text "X dari Y guru telah menerima...".
+        // Current view: uses $progressPercentage only in top bar.
+        // Detail progress bars use $countKepsekDone etc.
+
+        // We can keep $readyTeacherCount logic SEPARATE if needed for "Guru yang sudah FINAL/COMPLETE" logic.
+        // But user asked to calculate PROGRESS based on TASKS.
+        // I will remove the old loop-based logic.
+
+        // --- TREND DATA (Rata-rata Nilai per Periode) ---
+        // Kita ambil data statistik periodik
+        $trendLabels = [];
+        $trendData = [];
+        
+        // Ambil data urut dari yang terlama ke terbaru untuk grafik
+        // Ambil data urut dari yang terlama ke terbaru untuk grafik
+        // HANYA ambil periode yang sudah ada FinalScore-nya (sudah pernah dinilai)
+        $periodsAsc = Period::whereIn('id', FinalScore::select('periode_id')->distinct())
+            ->orderBy('tanggal_mulai', 'asc')
+            ->get();
+
+        foreach ($periodsAsc as $p) {
+             $avg = FinalScore::where('periode_id', $p->id)->avg('nilai_akhir');
+             $trendLabels[] = $p->tahun_ajaran . ' ' . $p->semester;
+             $trendData[]   = $avg ? round($avg, 2) : 0;
+        }
 
 
-        // 1️⃣ Ringkasan umum
-        $guruSudahDinilai = $scores->count();
+        // 1️⃣ Ringkasan umum (PERSONALIZED CARDS)
+        $isAdmin = $user->role === 'admin';
+        
+        // 1️⃣ Ringkasan umum (PERSONALIZED CARDS)
+        $isAdmin = $user->role === 'admin';
+        
+        // Unified Logic: "Sudah Dinilai" = Assessed by ME (Logged-in User)
+        // Admin also acts as an evaluator (if applicable) or sees their own input
+        $MyEvaluations = Evaluation::with('guru')
+            ->where('periode_id', $periode->id)
+            ->where('penilai_id', $user->id) 
+            ->get();
+            
+        $guruSudahDinilai = $MyEvaluations->count();
+        
+        // List for Modal - Personalized
+        $guruSudahDinilaiList = $MyEvaluations->map(function($eval) {
+            return [
+                'nama' => $eval->guru->nama,
+                'nilai_akhir' => $eval->average_score, // Show score given by User
+            ];
+        })->values();
+        
+        $guruIdsSudahDinilai = $MyEvaluations->pluck('guru_id')->toArray();
+
         $guruBelumDinilai = max(0, $totalGuru - $guruSudahDinilai);
+        
+        // List Belum Dinilai
+        $guruBelumDinilaiList = Guru::whereNotIn('id', $guruIdsSudahDinilai)
+            ->get()
+            ->map(function($guru) {
+                return [
+                    'nama' => $guru->nama,
+                    'kelas' => $guru->kelas
+                ];
+            })->values();
+            
+        // Rata-rata & Berprestasi tetap Global (Monitoring Sekolah)
         $rataRataNilai = $scores->avg('nilai_akhir') ?? 0;
 
-        // Anggap "guru berprestasi" = rekomendasi Penghargaan atau Promosi
         $jumlahGuruBerprestasi = $scores
             ->filter(function ($row) {
                 return $row->nilai_akhir >= 90;
             })
             ->count();
+            
+        // List Berprestasi (Global)
+        $guruBerprestasiList = $scores->filter(function ($row) {
+            return $row->nilai_akhir >= 90;
+        })->map(function($score) {
+            return [
+                'nama' => $score->guru->nama,
+                'nilai_akhir' => $score->nilai_akhir,
+                'rekomendasi' => $score->recommendation->nama ?? '-'
+            ];
+        })->values();
 
-        // 3️⃣ Grafik rata-rata nilai per kompetensi
+        // 3️⃣ Grafik rata-rata nilai per kompetensi (Global)
         // Hitung rata-rata nilai (1–5) per kompetensi berdasarkan evaluation_details (hanya KPI aktif)
         // 3️⃣ Grafik rata-rata nilai per kompetensi
         // Hitung rata-rata nilai per kompetensi menggunakan logika "Nilai Akhir Kontribusi"
@@ -88,6 +229,7 @@ class DashboardController extends Controller
             'sosial' => 0, 
             'profesional' => 0
         ];
+        
         $validTeacherCount = 0;
 
         foreach ($scores as $score) {
@@ -170,37 +312,7 @@ class DashboardController extends Controller
             $kategoriCounts[] = $count;
         }
 
-        // Data untuk Modal Popups
-        $guruSudahDinilaiList = $scores->map(function($score) {
-            return [
-                'nama' => $score->guru->nama,
-                // nip removed
-                'nilai_akhir' => $score->nilai_akhir,
-                'rekomendasi' => $score->recommendation->nama ?? '-'
-            ];
-        })->values();
 
-        $guruIdsSudahDinilai = $scores->pluck('guru_id')->toArray();
-        $guruBelumDinilaiList = Guru::whereNotIn('id', $guruIdsSudahDinilai)
-            ->get()
-            ->map(function($guru) {
-                return [
-                    'nama' => $guru->nama,
-                    // nip removed
-                    'kelas' => $guru->kelas // Adjusted to use 'kelas' instead of 'jabatan'
-                ];
-            })->values();
-
-        $guruBerprestasiList = $scores->filter(function ($row) {
-            return $row->nilai_akhir >= 90;
-        })->map(function($score) {
-            return [
-                'nama' => $score->guru->nama,
-                // nip removed
-                'nilai_akhir' => $score->nilai_akhir,
-                'rekomendasi' => $score->recommendation->nama ?? '-'
-            ];
-        })->values();
 
         return view('dashboard.index', [
             'periode' => $periode,
@@ -218,6 +330,18 @@ class DashboardController extends Controller
             'guruSudahDinilaiList' => $guruSudahDinilaiList,
             'guruBelumDinilaiList' => $guruBelumDinilaiList,
             'guruBerprestasiList' => $guruBerprestasiList,
+            // Filter & Trend & Progress
+            'allPeriods' => $allPeriods,
+            'progressPercentage' => $progressPercentage,
+            'readyTeacherCount' => $readyTeacherCount,
+            // Detail Progress
+            'progressKepsek' => $progressKepsek, 'countKepsekDone' => $countKepsekDone, 'countKepsekTotal' => $countKepsekTotal,
+            'progressGuru'   => $progressGuru,   'countGuruDone'   => $countGuruDone,   'countGuruTotal'   => $countGuruTotal,
+            'progressWali'   => $progressWali,   'countWaliDone'   => $countWaliDone,   'countWaliTotal'   => $countWaliTotal,
+            
+            'trendLabels' => $trendLabels,
+            'trendData' => $trendData,
+            'isAdmin' => $isAdmin,
         ]);
     }
 
@@ -234,7 +358,15 @@ class DashboardController extends Controller
         }
 
         $guru = $user->guru;
-        $periode = Period::where('status', 'aktif')->first();
+        
+        // Ambil semua periode untuk filter
+        $allPeriods = Period::orderBy('id', 'desc')->get();
+        
+        // Tentukan periode yang dipilih (dari input atau default aktif)
+        $periodeId = request('periode_id');
+        $periode = $periodeId 
+            ? Period::find($periodeId) 
+            : Period::where('status', 'aktif')->first();
 
         // 1️⃣ Informasi Umum
         // $jabatan removed
@@ -377,6 +509,46 @@ class DashboardController extends Controller
                 ];
             }
         }
+        
+        // 6️⃣ Statistik Penilaian Sejawat (Sebagai Penilai)
+        $rekanSudahDinilaiCount = 0;
+        $rekanBelumDinilaiCount = 0;
+        $rekanSudahDinilaiList = [];
+        $rekanBelumDinilaiList = [];
+        
+        if ($periode) {
+            // Guru menilai rekan sejawat (kecuali diri sendiri)
+            // Total Rekan = Total Guru - 1 (Diri sendiri)
+            $totalRekan = max(0, Guru::count() - 1);
+            
+            // Yang sudah dinilai oleh user ini
+            $myEvaluations = Evaluation::with('guru')
+                ->where('periode_id', $periode->id)
+                ->where('penilai_id', $user->id)
+                ->get();
+            
+            $rekanSudahDinilaiCount = $myEvaluations->count();
+            $rekanBelumDinilaiCount = max(0, $totalRekan - $rekanSudahDinilaiCount);
+            
+            // Lists
+            $rekanSudahDinilaiList = $myEvaluations->map(function($eval) {
+                return [
+                    'nama' => $eval->guru->nama,
+                    'nilai' => $eval->average_score
+                ];
+            });
+            
+            $evaluatedIds = $myEvaluations->pluck('guru_id')->toArray();
+            $rekanBelumDinilaiList = Guru::where('id', '!=', $guru->id)
+                ->whereNotIn('id', $evaluatedIds)
+                ->get()
+                ->map(function($g) {
+                    return [
+                        'nama' => $g->nama,
+                        'kelas' => $g->kelas
+                    ];
+                });
+        }
 
         return view('dashboard.guru', compact(
             'guru',
@@ -392,7 +564,13 @@ class DashboardController extends Controller
             'jumlahKepalaSekolah',
             'jumlahRekanGuru',
             'jumlahWaliMurid',
-            'riwayatPenilaian'
+            'riwayatPenilaian',
+            // Data Penilai
+            'rekanSudahDinilaiCount',
+            'rekanBelumDinilaiCount',
+            'rekanSudahDinilaiList',
+            'rekanBelumDinilaiList',
+            'allPeriods'
         ));
     }
 }

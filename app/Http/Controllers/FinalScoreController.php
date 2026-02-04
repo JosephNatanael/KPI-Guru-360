@@ -270,3 +270,6 @@ class FinalScoreController extends Controller
         return view('finalscore.unassessed', compact('gurus', 'periode'));
     }
 }
+
+
+

@@ -10,65 +10,152 @@
             Belum ada periode aktif.
         </div>
     @else
-        {{-- 1️⃣ Informasi Umum --}}
+        {{-- 1️⃣ Informasi Umum & Filter --}}
         <div class="row mb-4">
-            <div class="col-md-6">
+            <div class="col-md-4 mb-3">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Periode Penilaian Aktif</h5>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="card-title mb-0">Periode Penilaian</h5>
+                            {{-- Filter Periode --}}
+                            <form action="{{ route('dashboard') }}" method="GET" class="d-flex align-items-center">
+                                <select name="periode_id" class="form-select form-select-sm me-2" onchange="this.form.submit()">
+                                    @foreach($allPeriods as $p)
+                                        <option value="{{ $p->id }}" {{ $periode->id == $p->id ? 'selected' : '' }}>
+                                            {{ $p->tahun_ajaran }} - {{ ucfirst($p->semester) }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </form>
+                        </div>
+                        
                         <p class="mb-1"><strong>Tahun Ajaran:</strong> {{ $periode->tahun_ajaran }}</p>
                         <p class="mb-1"><strong>Semester:</strong> {{ ucfirst($periode->semester) }}</p>
-                        <p class="mb-0"><strong>Tanggal:</strong> {{ $periode->tanggal_mulai }} s/d {{ $periode->tanggal_selesai }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Informasi Guru</h5>
                         <p class="mb-0">
-                            <strong>Total Guru:</strong> {{ $totalGuru }}
+                            <strong>Status:</strong> 
+                            <span class="badge bg-{{ $periode->status == 'aktif' ? 'success' : 'secondary' }}">
+                                {{ ucfirst($periode->status) }}
+                            </span>
                         </p>
                     </div>
                 </div>
             </div>
-        </div>
-
-        {{-- 2️⃣ Ringkasan Statistik --}}
-        <div class="row mb-4">
-            <div class="col-md-3 mb-3">
-                <div class="card text-bg-success h-100">
+            <div class="col-md-4 mb-3">
+                <div class="card h-100">
                     <div class="card-body">
-                        <h6 class="card-title">Guru Sudah Dinilai</h6>
-                        <h3 class="mb-0">{{ $guruSudahDinilai }}</h3>
+                        <h5 class="card-title">Informasi Guru</h5>
+                        <p class="mb-0 fs-5">
+                            <strong>Total Guru:</strong> {{ $totalGuru }}
+                        </p>
+                        <hr>
+                         <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span>Progress Penilaian Keseluruhan</span>
+                            <span class="fw-bold">{{ $progressPercentage }}%</span>
+                        </div>
+                        <div class="progress mb-3" style="height: 20px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated {{ $progressPercentage == 100 ? 'bg-success' : 'bg-primary' }}" 
+                                 role="progressbar" 
+                                 style="width: {{ $progressPercentage }}%;" 
+                                 aria-valuenow="{{ $progressPercentage }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="100">
+                            </div>
+                        </div>
+
+                        {{-- Detail Penilai --}}
+                        <div class="mb-2">
+                            <small class="d-flex justify-content-between">
+                                <span>Kepala Sekolah ({{ $countKepsekDone }}/{{ $countKepsekTotal }})</span>
+                                <span>{{ $progressKepsek }}%</span>
+                            </small>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-info" style="width: {{ $progressKepsek }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-2">
+                            <small class="d-flex justify-content-between">
+                                <span>Rekan Guru ({{ $countGuruDone }}/{{ $countGuruTotal }})</span>
+                                <span>{{ $progressGuru }}%</span>
+                            </small>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-warning" style="width: {{ $progressGuru }}%"></div>
+                            </div>
+                        </div>
+                        <div class="mb-0">
+                            <small class="d-flex justify-content-between">
+                                <span>Wali Murid ({{ $countWaliDone }}/{{ $countWaliTotal }})</span>
+                                <span>{{ $progressWali }}%</span>
+                            </small>
+                            <div class="progress" style="height: 5px;">
+                                <div class="progress-bar bg-danger" style="width: {{ $progressWali }}%"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            {{-- Stats Stack Column --}}
+            <div class="col-md-4 mb-3">
+                @if(!$isAdmin)
+                <div class="card text-bg-success mb-3">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">Guru Sudah Dinilai</h5>
+                            </div>
+                            <h3 class="mb-0">{{ $guruSudahDinilai }}</h3>
+                        </div>
                         <a href="javascript:void(0)" class="stretched-link" data-bs-toggle="modal" data-bs-target="#modalSudahDinilai"></a>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card text-bg-warning h-100">
+                <div class="card text-bg-warning mb-3">
                     <div class="card-body">
-                        <h6 class="card-title">Guru Belum Dinilai</h6>
-                        <h3 class="mb-0">{{ $guruBelumDinilai }}</h3>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="card-title mb-0">Guru Belum Dinilai</h5>
+                            </div>
+                            <h3 class="mb-0">{{ $guruBelumDinilai }}</h3>
+                        </div>
                         <a href="javascript:void(0)" class="stretched-link" data-bs-toggle="modal" data-bs-target="#modalBelumDinilai"></a>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card text-bg-primary h-100">
+                @endif
+
+                {{-- Global Stats (Admin & Kepsek) --}}
+                <div class="card text-bg-primary mb-3">
                     <div class="card-body">
                         <h6 class="card-title">Rata-rata Nilai Kinerja</h6>
                         <h3 class="mb-0">{{ $rataRataNilai }}</h3>
                         <a href="javascript:void(0)" class="stretched-link" data-bs-toggle="modal" data-bs-target="#modalRataRata"></a>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-3 mb-3">
-                <div class="card text-bg-info h-100">
+                @if(!$isAdmin)
+                <div class="card text-bg-info">
                     <div class="card-body">
                         <h6 class="card-title">Guru Berprestasi</h6>
                         <h3 class="mb-0">{{ $jumlahGuruBerprestasi }}</h3>
                         <a href="javascript:void(0)" class="stretched-link" data-bs-toggle="modal" data-bs-target="#modalBerprestasi"></a>
+                    </div>
+                </div>
+                @endif
+            </div>
+        </div>
+
+        {{-- 4️⃣ Grafik Tren --}}
+        <div class="row mb-4">
+             <div class="col-12">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>Tren Rata-rata Nilai Periode</span>
+                        @if(count($trendLabels) > 10)
+                        <div>
+                            <button id="btnPrev" class="btn btn-sm bg-white border shadow-sm text-primary me-2" title="Periode Sebelumnya"><i class="fas fa-chevron-left"></i></button>
+                            <button id="btnNext" class="btn btn-sm bg-white border shadow-sm text-primary" title="Periode Selanjutnya"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                        @endif
+                    </div>
+                    <div class="card-body">
+                        <canvas id="chartTrend" height="80"></canvas>
                     </div>
                 </div>
             </div>
@@ -97,6 +184,8 @@
                 </div>
             </div>
         </div>
+        
+
     @endif
 
 
@@ -116,8 +205,7 @@
                             <thead>
                                 <tr>
                                     <th>Nama</th>
-                                    <th>Nilai Akhir</th>
-                                    <th>Rekomendasi</th>
+                                    <th>Rata-rata Nilai</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -125,11 +213,10 @@
                                     <tr>
                                         <td>{{ $g['nama'] }}</td>
                                         <td><span class="badge bg-success">{{ number_format($g['nilai_akhir'], 2) }}</span></td>
-                                        <td>{{ $g['rekomendasi'] ?? '-' }}</td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="4" class="text-center text-muted">Belum ada data guru yang dinilai.</td>
+                                        <td colspan="2" class="text-center text-muted">Belum ada data guru yang dinilai.</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -137,7 +224,11 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                     <a href="{{ route('finalscore.index') }}" class="btn btn-outline-success">Lihat Selengkapnya</a>
+                     @if($isAdmin)
+                        <a href="{{ route('finalscore.index') }}" class="btn btn-outline-success">Lihat Selengkapnya</a>
+                     @else
+                        <a href="{{ route('evaluation.index') }}" class="btn btn-outline-success">Lihat Selengkapnya</a>
+                     @endif
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
@@ -153,31 +244,33 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover table-striped">
-                            <thead>
-                                <tr>
-                                    <th>Nama</th>
-                                    <th>Kelas / Jabatan</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @forelse($guruBelumDinilaiList as $g)
-                                    <tr>
-                                        <td>{{ $g['nama'] }}</td>
-                                        <td>{{ $g['kelas'] ?? '-' }}</td>
-                                    </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="3" class="text-center text-muted">Semua guru sudah dinilai!</td>
-                                    </tr>
-                                @endforelse
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                    <table class="table table-bordered table-striped">
+                        <thead class="table-light">
+                        <tr>
+                            <th>Nama Guru</th>
+                            <th>Kelas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($guruBelumDinilaiList as $guru)
+                        <tr>
+                            <td>{{ $guru['nama'] }}</td>
+                            <td>{{ $guru['kelas'] }}</td>
+                        </tr>
+                        @empty
+                        <tr>
+                            <td colspan="2" class="text-center text-muted">Semua guru sudah dinilai.</td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
                 <div class="modal-footer">
-                    <a href="{{ route('finalscore.unassessed') }}" class="btn btn-outline-warning text-dark">Lihat Selengkapnya</a>
+                    @if($isAdmin)
+                        <a href="{{ route('finalscore.unassessed') }}" class="btn btn-outline-warning text-dark">Lihat Selengkapnya</a>
+                    @else
+                        <a href="{{ route('evaluation.index') }}" class="btn btn-outline-warning text-dark">Mulai Penilaian</a>
+                    @endif
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
@@ -367,6 +460,34 @@
         // Tampilkan pesan jika tidak ada kategori
         ctxKategori.canvas.parentElement.innerHTML = '<div class="alert alert-info text-center">Belum ada data rekomendasi. Silakan tambahkan rekomendasi di menu Rekomendasi.</div>';
     }
+    
+    // Grafik Tren Rata-rata
+    const ctxTrend = document.getElementById('chartTrend').getContext('2d');
+    new Chart(ctxTrend, {
+        type: 'line',
+        data: {
+            labels: {!! json_encode($trendLabels) !!},
+            datasets: [{
+                label: 'Rata-rata Nilai Akhir',
+                data: {!! json_encode($trendData) !!},
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                tension: 0.4,
+                fill: true,
+                pointBackgroundColor: 'rgba(75, 192, 192, 1)',
+                pointRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100
+                }
+            }
+        }
+    });
 </script>
 @endif
 @endsection
