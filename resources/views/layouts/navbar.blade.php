@@ -114,27 +114,30 @@
 </style>
 
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container">
+    <div class="container d-flex align-items-center justify-content-between">
 
-        <a class="navbar-brand" href="{{ url('/') }}">
+        {{-- BRAND (Kiri) --}}
+        <a class="navbar-brand me-0" href="{{ url('/') }}">
             KPI Guru 360°
         </a>
 
+        {{-- PERIODE (Tengah) --}}
         @if(isset($activePeriod))
-        <div class="ms-lg-2 ms-1">
+        <div class="ms-1 ms-lg-2 order-2 order-lg-1 mx-auto mx-lg-0">
             <span class="badge bg-white bg-opacity-10 text-white-50 border border-white border-opacity-10 fw-normal px-2 px-lg-3 py-1 py-lg-2 navbar-period-badge">
                 <i class="bi bi-calendar3 me-1 me-lg-2 text-white"></i>
                 <span class="d-none d-md-inline">Periode: </span>
-                <span class="text-white fw-bold" style="font-size: 0.8rem;">{{ $activePeriod->tahun_ajaran }} - {{ ucfirst($activePeriod->semester) }}</span>
+                <span class="text-white fw-bold" style="font-size: 0.75rem;">{{ $activePeriod->tahun_ajaran }} - {{ ucfirst($activePeriod->semester) }}</span>
             </span>
         </div>
         @endif
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+        {{-- TOGGLER (Kanan) --}}
+        <button class="navbar-toggler order-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarContent">
+        <div class="collapse navbar-collapse order-4 order-lg-2" id="navbarContent">
 
             <ul class="navbar-nav me-auto">
 

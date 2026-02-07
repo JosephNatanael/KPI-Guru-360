@@ -9,7 +9,8 @@
         </small>
     </h4>
 
-    <table class="table table-bordered mt-3">
+    <div class="table-responsive">
+        <table class="table table-bordered mt-3">
         <thead class="table-primary">
             <tr>
                 <th>Guru</th>
@@ -38,5 +39,6 @@
         @endforeach
         </tbody>
     </table>
+    </div>
 </div>
 @endsection

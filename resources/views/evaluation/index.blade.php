@@ -12,6 +12,7 @@
                 <i class="fas fa-exclamation-circle me-1"></i> <b>Guru Belum Dinilai</b>
             </div>
             <div class="card-body p-0">
+                <div class="table-responsive">
                 <table class="table table-striped mb-0">
                     <thead>
                         <tr>
@@ -34,6 +35,7 @@
                         @endforeach
                     </tbody>
                 </table>
+                </div>
             </div>
         </div>
     @else
@@ -46,6 +48,7 @@
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
+    <div class="table-responsive">
     <table class="table table-bordered">
         <thead class="table-primary">
             <tr>
@@ -71,6 +74,8 @@
             @endforeach
         </tbody>
     </table>
+    </div>
+
 
 </div>
 @endsection

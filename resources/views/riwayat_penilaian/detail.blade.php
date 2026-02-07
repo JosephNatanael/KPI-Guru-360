@@ -19,6 +19,7 @@
 
 <h5>Rekap Penilaian per Role</h5>
 
+<div class="table-responsive">
 <table class="table table-bordered">
     <thead>
         <tr>
@@ -37,11 +38,13 @@
         @endforeach
     </tbody>
 </table>
+</div>
 
 <hr>
 
 <h5>Detail Penilai</h5>
 
+<div class="table-responsive">
 <table class="table table-striped">
     <thead>
         <tr>
@@ -60,6 +63,7 @@
         @endforeach
     </tbody>
 </table>
+</div>
 
 <hr>
 
@@ -71,6 +75,7 @@
 </div>
 
 @if(!empty($indikatorRekap))
+    <div class="table-responsive">
     <table class="table table-bordered">
         <thead>
             <tr>
@@ -105,6 +110,7 @@
             </tr>
         </tfoot>
     </table>
+    </div>
 @else
     <p class="text-muted">Belum ada data rekap per indikator.</p>
 @endif
