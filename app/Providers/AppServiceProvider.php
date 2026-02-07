@@ -25,6 +25,12 @@ class AppServiceProvider extends ServiceProvider
         Schema::defaultStringLength(191);
         Paginator::useBootstrapFive();
 
+
+        // force https in production
+        if (app()->environment('production')){
+            URL::forceScheme('https');
+        }
+
         // Share active period globally
         if (!app()->runningInConsole()) {
             try {
