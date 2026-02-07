@@ -124,8 +124,8 @@
         <div class="ms-lg-2 ms-1">
             <span class="badge bg-white bg-opacity-10 text-white-50 border border-white border-opacity-10 fw-normal px-2 px-lg-3 py-1 py-lg-2 navbar-period-badge">
                 <i class="bi bi-calendar3 me-1 me-lg-2 text-white"></i>
-                <span class="d-none d-sm-inline">Periode: </span>
-                <span class="text-white fw-bold">{{ $activePeriod->tahun_ajaran }} - {{ ucfirst($activePeriod->semester) }}</span>
+                <span class="d-none d-md-inline">Periode: </span>
+                <span class="text-white fw-bold" style="font-size: 0.8rem;">{{ $activePeriod->tahun_ajaran }} - {{ ucfirst($activePeriod->semester) }}</span>
             </span>
         </div>
         @endif

@@ -242,3 +242,43 @@ h5 {
     background-color: transparent;
     border: 1px solid var(--border-color);
 }
+
+/* Responseive Utilities */
+@media (max-width: 768px) {
+    .main-content {
+        padding-top: 70px;
+        /* Adjusted for mobile navbar */
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .card-body-premium {
+        padding: 1rem;
+    }
+
+    .table-premium thead th {
+        padding: 0.75rem 0.75rem;
+    }
+
+    .table-premium tbody td {
+        padding: 0.75rem 0.75rem;
+    }
+
+    h3 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .btn-group-responsive {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+
+    .btn-group-responsive .btn {
+        flex: 1 0 40px;
+        margin: 0 !important;
+        border-radius: 50% !important;
+    }
+}

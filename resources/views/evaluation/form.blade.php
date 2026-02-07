@@ -25,7 +25,8 @@
                                 KPI ini belum memiliki pertanyaan. Silakan tambahkan pertanyaan di menu Pertanyaan KPI.
                             </div>
                         @else
-                            <table class="table table-bordered">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
                                 <thead class="table-light">
                                     <tr>
                                         <th width="5%">No</th>
@@ -49,7 +50,7 @@
                                                     ];
                                                 @endphp
 
-                                                <div class="btn-group" role="group" aria-label="Nilai 1 sampai 5">
+                                                <div class="btn-group btn-group-responsive" role="group" aria-label="Nilai 1 sampai 5">
                                                     @for($i = 1; $i <= 5; $i++)
                                                         <input type="radio" class="btn-check" name="nilai[question_{{ $question->id }}]"
                                                             id="q{{ $question->id }}_{{ $i }}" value="{{ $i }}" required>
@@ -64,7 +65,8 @@
                                         </tr>
                                     @endforeach
                                 </tbody>
-                            </table>
+                                </table>
+                            </div>
                         @endif
                     </div>
                 </div>

@@ -155,7 +155,9 @@
                         @endif
                     </div>
                     <div class="card-body">
-                        <canvas id="chartTrend" height="80"></canvas>
+                        <div style="position: relative; height: 300px;">
+                            <canvas id="chartTrend"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -169,7 +171,9 @@
                         Grafik Rata-rata Nilai per Kompetensi
                     </div>
                     <div class="card-body">
-                        <canvas id="chartKompetensi" height="150"></canvas>
+                        <div style="position: relative; height: 300px;">
+                            <canvas id="chartKompetensi"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -179,7 +183,9 @@
                         Grafik Kategori Hasil Penilaian
                     </div>
                     <div class="card-body">
-                        <canvas id="chartKategori" height="150"></canvas>
+                        <div style="position: relative; height: 300px;">
+                            <canvas id="chartKategori"></canvas>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -382,6 +388,8 @@
             }]
         },
         options: {
+            responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     beginAtZero: true
@@ -447,6 +455,7 @@
                         position: 'bottom'
                     }
                 },
+                maintainAspectRatio: false,
                 onClick: (e, activeEls) => {
                     if (activeEls.length > 0) {
                         const index = activeEls[0].index;
@@ -480,6 +489,7 @@
         },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 y: {
                     beginAtZero: true,
