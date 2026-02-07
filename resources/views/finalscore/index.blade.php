@@ -134,20 +134,20 @@
                 <thead class="table-light">
                     <tr>
                         <th class="text-start ps-4">Guru</th>
-                        <th class="d-none d-sm-table-cell">Pedagogik</th>
-                        <th class="d-none d-sm-table-cell">Kepribadian</th>
-                        <th class="d-none d-sm-table-cell">Sosial</th>
-                        <th class="d-none d-sm-table-cell">Profesional</th>
+                        <th>Pedagogik</th>
+                        <th>Kepribadian</th>
+                        <th>Sosial</th>
+                        <th>Profesional</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($scores as $s)
                     <tr>
                         <td class="fw-semibold text-start">{{ $s->guru->nama }}</td>
-                        <td class="d-none d-sm-table-cell">{{ $s->competency_scores['pedagogik'] ?? 0 }}</td>
-                        <td class="d-none d-sm-table-cell">{{ $s->competency_scores['kepribadian'] ?? 0 }}</td>
-                        <td class="d-none d-sm-table-cell">{{ $s->competency_scores['sosial'] ?? 0 }}</td>
-                        <td class="d-none d-sm-table-cell">{{ $s->competency_scores['profesional'] ?? 0 }}</td>
+                        <td>{{ $s->competency_scores['pedagogik'] ?? 0 }}</td>
+                        <td>{{ $s->competency_scores['kepribadian'] ?? 0 }}</td>
+                        <td>{{ $s->competency_scores['sosial'] ?? 0 }}</td>
+                        <td>{{ $s->competency_scores['profesional'] ?? 0 }}</td>
                     </tr>
                     @endforeach
                 </tbody>

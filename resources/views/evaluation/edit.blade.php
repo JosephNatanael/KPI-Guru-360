@@ -24,12 +24,13 @@
                                 KPI ini belum memiliki pertanyaan.
                             </div>
                         @else
-                            <table class="table table-bordered">
+                            <div class="table-responsive">
+                                <table class="table table-bordered">
                                 <thead class="table-light">
                                     <tr>
-                                        <th width="5%">No</th>
+                                        <th width="50">No</th>
                                         <th>Pertanyaan</th>
-                                        <th width="15%">Nilai (1–5)</th>
+                                        <th class="text-center" width="220">Nilai (1–5)</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -52,14 +53,13 @@
                                                     ];
                                                 @endphp
 
-                                                <div class="btn-group" role="group" aria-label="Nilai 1 sampai 5">
+                                                <div class="btn-group btn-group-responsive" role="group" aria-label="Nilai 1 sampai 5">
                                                     @for($i = 1; $i <= 5; $i++)
                                                         <input type="radio" class="btn-check" name="nilai[question_{{ $question->id }}]"
                                                             id="q{{ $question->id }}_{{ $i }}" value="{{ $i }}" 
                                                             {{ $oldVal == $i ? 'checked' : '' }} required>
                                                             <label
-                                                                class="btn btn-outline-{{ $colors[$i] }} rounded-circle"
-                                                                style="width:38px;height:38px;line-height:24px"
+                                                                class="btn btn-outline-{{ $colors[$i] }} btn-circle"
                                                                 for="q{{ $question->id }}_{{ $i }}"> {{ $i }} 
                                                             </label>
                                                     @endfor
@@ -68,7 +68,8 @@
                                         </tr>
                                     @endforeach
                                 </tbody>
-                            </table>
+                                </table>
+                            </div>
                         @endif
                     </div>
                 </div>

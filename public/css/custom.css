@@ -88,6 +88,20 @@ h5 {
     transform: translateY(-1px);
 }
 
+.btn-circle {
+    width: 38px !important;
+    height: 38px !important;
+    min-width: 38px !important;
+    min-height: 38px !important;
+    padding: 0 !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1 !important;
+    font-weight: 600;
+}
+
 /* Table Styling */
 .table-premium {
     width: 100%;
@@ -281,9 +295,9 @@ h5 {
         gap: 5px;
     }
 
-    .btn-group-responsive .btn {
-        flex: 1 0 40px;
-        margin: 0 !important;
-        border-radius: 50% !important;
+    .btn-group-responsive .btn-circle {
+        flex: 0 0 38px;
+        /* Maintain circle shape */
+        margin: 2px !important;
     }
 }
