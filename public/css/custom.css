@@ -100,6 +100,14 @@ h5 {
     justify-content: center !important;
     line-height: 1 !important;
     font-weight: 600;
+    aspect-ratio: 1/1 !important;
+    overflow: hidden !important;
+}
+
+/* Force rounding even inside Bootstrap button groups */
+.btn-group>.btn-circle,
+.btn-group>.btn-check+.btn-circle {
+    border-radius: 50% !important;
 }
 
 /* Table Styling */
@@ -123,7 +131,7 @@ h5 {
 .table-premium tbody td {
     padding: 1rem 1.5rem;
     border-bottom: 1px solid var(--border-color);
-    vertical-align: middle;
+    vertical-align: middle !important;
     color: var(--text-main);
     font-size: 0.875rem;
 }
@@ -293,6 +301,7 @@ h5 {
         display: flex;
         flex-wrap: wrap;
         gap: 5px;
+        justify-content: center;
     }
 
     .btn-group-responsive .btn-circle {

@@ -6,8 +6,6 @@
         <p>Periode: <b>{{ $periode->tahun_ajaran }} ({{ ucfirst($periode->semester) }})</b></p>
         <hr>
 
-
-
         <form action="{{ route('evaluation.store', $guru->id) }}" method="POST">
             @csrf
 
