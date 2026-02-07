@@ -55,11 +55,11 @@
                 <thead class="table-light text-center">
                     <tr>
                         <th>Guru</th>
-                        <th>KS</th>
-                        <th>RG</th>
-                        <th>WM</th>
-                        <th>Nilai Akhir</th>
-                        <th>Rekomendasi</th>
+                        <th class="d-none d-sm-table-cell">KS</th>
+                        <th class="d-none d-sm-table-cell">RG</th>
+                        <th class="d-none d-sm-table-cell">WM</th>
+                        <th>Nilai</th>
+                        <th class="d-none d-md-table-cell">Rekomendasi</th>
                         <th>Aksi</th>
                     </tr>
                 </thead>
@@ -87,9 +87,9 @@
                     <tr>
                         <td class="fw-semibold">{{ $s->guru->nama }}</td>
 
-                        <td class="text-center">{{ number_format($s->nilai_kepala_sekolah, 2) }}</td>
-                        <td class="text-center">{{ number_format($s->nilai_rekan_guru, 2) }}</td>
-                        <td class="text-center">{{ $s->nilai_wali_murid ?? '-' }}</td>
+                        <td class="text-center d-none d-sm-table-cell">{{ number_format($s->nilai_kepala_sekolah, 2) }}</td>
+                        <td class="text-center d-none d-sm-table-cell">{{ number_format($s->nilai_rekan_guru, 2) }}</td>
+                        <td class="text-center d-none d-sm-table-cell">{{ $s->nilai_wali_murid ?? '-' }}</td>
 
                         {{-- NILAI AKHIR --}}
                         <td class="text-center">
@@ -99,7 +99,7 @@
                         </td>
 
                         {{-- REKOMENDASI --}}
-                        <td class="text-center">
+                        <td class="text-center d-none d-md-table-cell">
                             <span class="badge bg-{{ $recClass }} fs-6 px-4 py-2 fw-semibold">
                                 <i class="fas {{ $recIcon }} me-1"></i>
                                 {{ strtoupper($s->recommendation->nama ?? '-') }}
@@ -133,21 +133,21 @@
             <table class="table table-bordered align-middle mb-0 text-center">
                 <thead class="table-light">
                     <tr>
-                        <th>Guru</th>
-                        <th>Pedagogik</th>
-                        <th>Kepribadian</th>
-                        <th>Sosial</th>
-                        <th>Profesional</th>
+                        <th class="text-start ps-4">Guru</th>
+                        <th class="d-none d-sm-table-cell">Pedagogik</th>
+                        <th class="d-none d-sm-table-cell">Kepribadian</th>
+                        <th class="d-none d-sm-table-cell">Sosial</th>
+                        <th class="d-none d-sm-table-cell">Profesional</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($scores as $s)
                     <tr>
                         <td class="fw-semibold text-start">{{ $s->guru->nama }}</td>
-                        <td>{{ $s->competency_scores['pedagogik'] ?? 0 }}</td>
-                        <td>{{ $s->competency_scores['kepribadian'] ?? 0 }}</td>
-                        <td>{{ $s->competency_scores['sosial'] ?? 0 }}</td>
-                        <td>{{ $s->competency_scores['profesional'] ?? 0 }}</td>
+                        <td class="d-none d-sm-table-cell">{{ $s->competency_scores['pedagogik'] ?? 0 }}</td>
+                        <td class="d-none d-sm-table-cell">{{ $s->competency_scores['kepribadian'] ?? 0 }}</td>
+                        <td class="d-none d-sm-table-cell">{{ $s->competency_scores['sosial'] ?? 0 }}</td>
+                        <td class="d-none d-sm-table-cell">{{ $s->competency_scores['profesional'] ?? 0 }}</td>
                     </tr>
                     @endforeach
                 </tbody>
@@ -175,13 +175,13 @@
                         <i class="fas fa-users me-2"></i>1. Nilai Per Role (KS, RG, WM)
                     </h6>
                     <p class="mb-3">
-                        Setiap role (Kepala Sekolah, Rekan Guru, Wali Murid) memberikan penilaian terhadap guru. 
+                        Setiap role (Kepala Sekolah, Rekan Guru, Wali Murid) memberikan penilaian terhadap guru.
                         Nilai per role dihitung dengan:
                     </p>
                     <div class="card bg-light border-0 mb-4">
                         <div class="card-body">
                             <p class="mb-2"><strong>Nilai Role</strong> = Rata-rata dari semua nilai yang diberikan oleh role tersebut × Bobot Role</p>
-                            
+
                             <div class="alert alert-warning border-0 mb-3" role="alert">
                                 <i class="fas fa-exclamation-triangle me-2"></i>
                                 <strong>Bobot berbeda untuk Wali Kelas dan Non-Wali Kelas</strong>
@@ -277,7 +277,7 @@
                         </div>
                     </div>
                     <p class="mb-0">
-                        Nilai per kompetensi dihitung dari rata-rata semua jawaban yang masuk dalam kategori kompetensi tersebut, 
+                        Nilai per kompetensi dihitung dari rata-rata semua jawaban yang masuk dalam kategori kompetensi tersebut,
                         dari semua role yang menilai.
                     </p>
 

@@ -65,8 +65,8 @@
                             <tr>
                                 <th>Tahun Ajaran</th>
                                 <th>Semester</th>
-                                <th>Mulai</th>
-                                <th>Selesai</th>
+                                <th class="d-none d-md-table-cell">Mulai</th>
+                                <th class="d-none d-md-table-cell">Selesai</th>
                                 <th>Status</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
@@ -76,8 +76,8 @@
                             <tr>
                                 <td class="fw-bold text-dark">{{ $p->tahun_ajaran }}</td>
                                 <td>{{ ucfirst($p->semester) }}</td>
-                                <td>{{ $p->tanggal_mulai }}</td>
-                                <td>{{ $p->tanggal_selesai }}</td>
+                                <td class="d-none d-md-table-cell">{{ $p->tanggal_mulai }}</td>
+                                <td class="d-none d-md-table-cell">{{ $p->tanggal_selesai }}</td>
                                 <td>
                                     @if($p->status === 'aktif')
                                         <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3">

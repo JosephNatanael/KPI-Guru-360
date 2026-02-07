@@ -80,23 +80,23 @@
         <thead>
             <tr>
                 <th>Sub Kompetensi</th>
-                <th>Bobot (%)</th>
-                <th>Nilai KS</th>
-                <th>Nilai RG</th>
-                <th>Nilai WM</th>
-                <th>Rata-Rata 360°</th>
-                <th>Nilai Akhir (Bobot×Rata-rata/5)</th>
+                <th class="d-none d-md-table-cell">Bobot (%)</th>
+                <th>KS</th>
+                <th>RG</th>
+                <th>WM</th>
+                <th class="d-none d-sm-table-cell">Rata 360°</th>
+                <th>Nilai Akhir</th>
             </tr>
         </thead>
         <tbody>
             @foreach($indikatorRekap as $row)
                 <tr>
                     <td>{{ $row['nama'] }}</td>
-                    <td>{{ $row['bobot'] }}</td>
+                    <td class="d-none d-md-table-cell">{{ $row['bobot'] }}</td>
                     <td>{{ $row['nilai_ks'] }}</td>
                     <td>{{ $row['nilai_rg'] }}</td>
                     <td>{{ $row['nilai_wm'] }}</td>
-                    <td>{{ $row['rata360'] }}</td>
+                    <td class="d-none d-sm-table-cell">{{ $row['rata360'] }}</td>
                     <td>{{ $row['nilai_akhir'] }}</td>
                 </tr>
             @endforeach

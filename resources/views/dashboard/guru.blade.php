@@ -222,8 +222,8 @@
                             </div>
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <canvas id="chartKompetensi" height="80"></canvas>
+                    <div class="mt-3" style="position: relative; height: 300px;">
+                        <canvas id="chartKompetensi"></canvas>
                     </div>
                 </div>
             </div>
@@ -327,9 +327,9 @@
                         </div>
                         
                         @if(count($riwayatPenilaian) > 1)
-                            <div class="mt-3">
+                            <div class="mt-3" style="position: relative; height: 300px;">
                                 <h6>Perbandingan dengan Periode Sebelumnya</h6>
-                                <canvas id="chartRiwayat" height="60"></canvas>
+                                <canvas id="chartRiwayat"></canvas>
                             </div>
                         @endif
                     @else
@@ -377,9 +377,11 @@
                 }]
             },
             options: {
+                maintainAspectRatio: false,
                 scales: {
                     y: {
-                        beginAtZero: true
+                        beginAtZero: true,
+                        max: 100
                     }
                 },
                 plugins: {
@@ -412,6 +414,7 @@
                 }]
             },
             options: {
+                maintainAspectRatio: false,
                 scales: {
                     y: {
                         beginAtZero: true,

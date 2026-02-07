@@ -13,23 +13,23 @@
             Semua guru sudah dinilai pada periode ini.
         </div>
     @else
+        <div class="table-responsive">
         <table class="table table-bordered table-striped">
             <thead class="table-danger">
                 <tr>
-                    <th>No</th>
+                    <th class="d-none d-sm-table-cell">No</th>
                     <th>Nama Guru</th>
-                    <th>Jabatan</th>
+                    <th class="d-none d-sm-table-cell">Jabatan</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($gurus as $index => $guru)
                 <tr>
-                    <td>{{ $index + 1 }}</td>
+                    <td class="d-none d-sm-table-cell">{{ $index + 1 }}</td>
                     <td>{{ $guru->nama }}</td>
-                    <td>{{ $guru->is_wali_kelas ? 'Wali Kelas ' . $guru->kelas : 'Guru Mapel' }}</td>
+                    <td class="d-none d-sm-table-cell">{{ $guru->is_wali_kelas ? 'Wali Kelas ' . $guru->kelas : 'Guru Mapel' }}</td>
                     <td>
-                        {{-- Link to evaluation page if possible, or just a reminder --}}
                          <a href="{{ route('evaluation.index') }}" class="btn btn-sm btn-primary">
                             Mulai Penilaian
                         </a>
@@ -38,6 +38,7 @@
                 @endforeach
             </tbody>
         </table>
+        </div>
     @endif
 </div>
 @endsection

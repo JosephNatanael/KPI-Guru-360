@@ -27,8 +27,8 @@
                         <thead>
                             <tr>
                                 <th>Nama Pengguna</th>
-                                <th>Email Address</th>
-                                <th>Role Akses</th>
+                                <th class="d-none d-md-table-cell">Email Address</th>
+                                <th class="d-none d-sm-table-cell">Role Akses</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
                         </thead>
@@ -46,8 +46,8 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>{{ $u->email }}</td>
-                                <td>
+                                <td class="d-none d-md-table-cell">{{ $u->email }}</td>
+                                <td class="d-none d-sm-table-cell">
                                     @php
                                         $roleClass = match($u->role) {
                                             'guru' => 'guru',

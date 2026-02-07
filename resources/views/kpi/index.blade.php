@@ -53,9 +53,9 @@
                         <thead>
                             <tr>
                                 <th>Nama KPI</th>
-                                <th>Kompetensi</th>
-                                <th>Bobot (%)</th>
-                                <th>Status</th>
+                                <th class="d-none d-sm-table-cell">Kompetensi</th>
+                                <th class="d-none d-md-table-cell">Bobot (%)</th>
+                                <th class="d-none d-md-table-cell">Status</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
                         </thead>
@@ -65,15 +65,15 @@
                                 <td>
                                     <span class="fw-bold text-dark">{{ $k->nama }}</span>
                                 </td>
-                                <td>
+                                <td class="d-none d-sm-table-cell">
                                     <span class="badge badge-{{ strtolower($k->kompetensi) }}">
                                         {{ ucfirst($k->kompetensi) }}
                                     </span>
                                 </td>
-                                <td>
+                                <td class="d-none d-md-table-cell">
                                     <span class="badge bg-light text-dark border">{{ $k->bobot }}%</span>
                                 </td>
-                                <td>
+                                <td class="d-none d-md-table-cell">
                                     <span class="badge bg-success-soft text-success">Aktif</span>
                                 </td>
                                 <td class="text-end">
@@ -121,9 +121,9 @@
                         <thead>
                             <tr>
                                 <th>Nama KPI</th>
-                                <th>Kompetensi</th>
-                                <th>Bobot (%)</th>
-                                <th>Status</th>
+                                <th class="d-none d-sm-table-cell">Kompetensi</th>
+                                <th class="d-none d-md-table-cell">Bobot (%)</th>
+                                <th class="d-none d-md-table-cell">Status</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
                         </thead>
@@ -131,13 +131,13 @@
                             @forelse($inactiveKpis as $k)
                             <tr>
                                 <td>{{ $k->nama }}</td>
-                                <td>
+                                <td class="d-none d-sm-table-cell">
                                     <span class="badge badge-{{ strtolower($k->kompetensi) }}">
                                         {{ ucfirst($k->kompetensi) }}
                                     </span>
                                 </td>
-                                <td>{{ $k->bobot }}%</td>
-                                <td>
+                                <td class="d-none d-md-table-cell">{{ $k->bobot }}%</td>
+                                <td class="d-none d-md-table-cell">
                                     <span class="badge bg-secondary-soft text-secondary">Nonaktif</span>
                                 </td>
                                 <td class="text-end">

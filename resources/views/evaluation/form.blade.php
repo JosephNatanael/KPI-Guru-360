@@ -29,15 +29,15 @@
                                 <table class="table table-bordered">
                                 <thead class="table-light">
                                     <tr>
-                                        <th width="5%">No</th>
+                                        <th width="5%" class="d-none d-sm-table-cell">No</th>
                                         <th>Pertanyaan</th>
-                                        <th width="15%">Nilai (1–5)</th>
+                                        <th class="text-center" style="min-width: 120px;">Nilai</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($kpi->questions as $index => $question)
                                         <tr>
-                                            <td class="text-center">{{ $index + 1 }}</td>
+                                            <td class="text-center d-none d-sm-table-cell">{{ $index + 1 }}</td>
                                             <td>{{ $question->pertanyaan }}</td>
                                             <td>
                                                 @php

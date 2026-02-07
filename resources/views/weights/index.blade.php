@@ -27,9 +27,9 @@
                         <thead>
                             <tr>
                                 <th>Jenis Guru</th>
-                                <th>Kepala Sekolah (%)</th>
-                                <th>Rekan Guru (%)</th>
-                                <th>Wali Murid (%)</th>
+                                <th class="text-center">KS (%)</th>
+                                <th class="text-center">RG (%)</th>
+                                <th class="text-center">WM (%)</th>
                                 <th class="text-end" width="150">Aksi</th>
                             </tr>
                         </thead>
@@ -37,9 +37,9 @@
                             @forelse($weights as $weight)
                             <tr>
                                 <td class="fw-bold text-dark">{{ ucwords(str_replace('_', ' ', $weight->jenis_guru)) }}</td>
-                                <td>{{ $weight->kepala_sekolah }}%</td>
-                                <td>{{ $weight->rekan_guru }}%</td>
-                                <td>{{ $weight->wali_murid ?? 0 }}%</td>
+                                <td class="text-center">{{ $weight->kepala_sekolah }}%</td>
+                                <td class="text-center">{{ $weight->rekan_guru }}%</td>
+                                <td class="text-center">{{ $weight->wali_murid ?? 0 }}%</td>
                                 <td class="text-end">
                                     <a href="{{ route('weights.edit', $weight->id) }}" class="btn btn-outline-warning btn-icon btn-sm me-1" data-bs-toggle="tooltip" title="Edit">
                                         <i class="bi bi-pencil-fill"></i>

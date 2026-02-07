@@ -243,7 +243,12 @@ h5 {
     border: 1px solid var(--border-color);
 }
 
-/* Responseive Utilities */
+/* Responsive Utilities */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
 @media (max-width: 768px) {
     .main-content {
         padding-top: 70px;
