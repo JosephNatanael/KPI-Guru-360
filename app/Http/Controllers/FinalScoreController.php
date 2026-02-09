@@ -248,7 +248,91 @@ class FinalScoreController extends Controller
             $score->competency_scores = $finalCompetencyScores;
         }
 
-        return view('finalscore.index', compact('scores', 'periode'));
+        // ==========================================
+        // SCHOOL-WIDE INDICATOR PERFORMANCE SUMMARY
+        // ==========================================
+        $indicatorPerformance = [];
+        
+        foreach ($indicators as $ind) {
+            // Calculate school-wide average 360° for this indicator across all teachers
+            $totalAvg360 = 0;
+            $validTeacherCount = 0;
+            
+            foreach ($scores as $score) {
+                $guru = $score->guru;
+                $jenisGuru = $guru->is_wali_kelas ? 'wali_kelas' : 'non_wali_kelas';
+                $bobotEvaluator = EvaluatorWeight::where('jenis_guru', $jenisGuru)->first();
+                
+                // Calculate 360 for this teacher on this indicator
+                $u = function($role) use ($guru, $periode, $ind) {
+                    return EvaluationDetail::whereHas('question', function($q) use ($ind) {
+                            $q->where('kpi_indicator_id', $ind->id);
+                        })
+                        ->whereHas('evaluation', function ($q) use ($guru, $periode, $role) {
+                            $q->where('guru_id', $guru->id)
+                              ->where('periode_id', $periode->id)
+                              ->where('role_penilai', $role);
+                        })
+                        ->avg('nilai') ?? 0;
+                };
+
+                $avgKepsek = $u('kepala_sekolah');
+                $avgGuru   = $u('guru');
+                $avgWali   = $u('wali_murid');
+
+                if ($bobotEvaluator) {
+                    $avg360 = 
+                        ($avgKepsek * $bobotEvaluator->kepala_sekolah / 100) +
+                        ($avgGuru   * $bobotEvaluator->rekan_guru     / 100) +
+                        ($avgWali   * $bobotEvaluator->wali_murid     / 100);
+                } else {
+                    $avg360 = 0;
+                }
+                
+                $totalAvg360 += $avg360;
+                $validTeacherCount++;
+            }
+            
+            // School-wide average for this indicator
+            $schoolAvg360 = $validTeacherCount > 0 ? $totalAvg360 / $validTeacherCount : 0;
+            
+            // 1️⃣ Persentase Kinerja (for Analysis & Comparison)
+            $persentaseKinerja = ($schoolAvg360 / 5) * 100;
+            
+            // 2️⃣ Nilai Kontribusi Indikator (for Final Score Consistency)
+            $nilaiKontribusi = ($schoolAvg360 / 5) * $ind->bobot;
+            
+            // Determine category based on Persentase Kinerja
+            if ($persentaseKinerja >= 90) {
+                $kategori = 'Sangat Baik';
+                $kategoriIcon = '⭐';
+                $kategoriClass = 'success';
+            } elseif ($persentaseKinerja >= 80) {
+                $kategori = 'Baik';
+                $kategoriIcon = '✅';
+                $kategoriClass = 'primary';
+            } elseif ($persentaseKinerja > 50) {
+                $kategori = 'Cukup';
+                $kategoriIcon = '⚠';
+                $kategoriClass = 'warning';
+            } else {
+                $kategori = 'Kurang';
+                $kategoriIcon = '❌';
+                $kategoriClass = 'danger';
+            }
+            
+            $indicatorPerformance[] = [
+                'nama' => $ind->nama,
+                'bobot' => $ind->bobot,
+                'nilai_kontribusi' => round($nilaiKontribusi, 2),
+                'persentase_kinerja' => round($persentaseKinerja, 2),
+                'kategori' => $kategori,
+                'kategori_icon' => $kategoriIcon,
+                'kategori_class' => $kategoriClass,
+            ];
+        }
+
+        return view('finalscore.index', compact('scores', 'periode', 'indicatorPerformance'));
     }
     /**
      * Tampilkan guru yang belum dinilai

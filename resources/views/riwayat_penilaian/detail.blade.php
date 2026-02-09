@@ -80,11 +80,11 @@
         <thead>
             <tr>
                 <th>Sub Kompetensi</th>
-                <th class="d-none d-md-table-cell">Bobot (%)</th>
+                <th>Bobot (%)</th>
                 <th>KS</th>
                 <th>RG</th>
                 <th>WM</th>
-                <th class="d-none d-sm-table-cell">Rata 360°</th>
+                <th>Rata 360°</th>
                 <th>Nilai Akhir</th>
             </tr>
         </thead>
@@ -92,11 +92,11 @@
             @foreach($indikatorRekap as $row)
                 <tr>
                     <td>{{ $row['nama'] }}</td>
-                    <td class="d-none d-md-table-cell">{{ $row['bobot'] }}</td>
+                    <td>{{ $row['bobot'] }}</td>
                     <td>{{ $row['nilai_ks'] }}</td>
                     <td>{{ $row['nilai_rg'] }}</td>
                     <td>{{ $row['nilai_wm'] }}</td>
-                    <td class="d-none d-sm-table-cell">{{ $row['rata360'] }}</td>
+                    <td>{{ $row['rata360'] }}</td>
                     <td>{{ $row['nilai_akhir'] }}</td>
                 </tr>
             @endforeach

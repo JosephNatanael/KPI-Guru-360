@@ -70,7 +70,7 @@
 
     <!-- Tabel Rekap Nilai Guru -->
     <h3>Tabel Rekap Nilai Guru</h3>
-    <table class="main-table">
+    <table class="main-table" style="margin-bottom: 20px;">
         <thead>
             <tr>
                 <th style="width: 5%">No</th>
@@ -109,6 +109,44 @@
             @endforelse
         </tbody>
     </table>
+
+    <!-- Ringkasan Performa Per Indikator -->
+    <div style="page-break-inside: avoid;">
+        <h3>Ringkasan Performa Per Indikator (Keseluruhan Guru)</h3>
+        <table class="main-table" style="margin-bottom: 20px;">
+            <thead>
+                <tr>
+                    <th style="width: 5%">No</th>
+                    <th style="width: 35%">Indikator</th>
+                    <th style="width: 10%">Bobot</th>
+                    <th style="width: 15%">Nilai Kontribusi</th>
+                    <th style="width: 15%">Persentase Kinerja</th>
+                    <th style="width: 20%">Kategori</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php $totalKontribusi = 0; @endphp
+                @foreach($indicatorPerformance as $index => $ind)
+                    @php $totalKontribusi += $ind['nilai_kontribusi']; @endphp
+                    <tr>
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        <td>{{ $ind['nama'] }}</td>
+                        <td class="text-center">{{ $ind['bobot'] }}</td>
+                        <td class="text-center">{{ number_format($ind['nilai_kontribusi'], 2) }}</td>
+                        <td class="text-center">{{ number_format($ind['persentase_kinerja'], 2) }}%</td>
+                        <td class="text-center">{{ $ind['kategori'] }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="text-right"><strong>Total Nilai Kontribusi:</strong></td>
+                    <td class="text-center" style="background-color: #f2f2f2;"><strong>{{ number_format($totalKontribusi, 2) }}</strong></td>
+                    <td colspan="2"></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
 
     <!-- Catatan Sistem -->
     <div class="footer-note">

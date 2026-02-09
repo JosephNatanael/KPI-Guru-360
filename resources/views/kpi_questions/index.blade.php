@@ -117,7 +117,7 @@
                         <thead>
                             <tr>
                                 <th style="width: 25%;">KPI</th>
-                                <th class="d-none d-sm-table-cell" style="width: 15%;">Kompetensi</th>
+                                <th style="width: 15%;">Kompetensi</th>
                                 <th style="width: 50%;">Pertanyaan</th>
                                 <th class="d-none d-md-table-cell" style="width: 10%;">Urutan</th>
                                 <th class="text-end" style="width: 10%;">Aksi</th>
@@ -129,7 +129,7 @@
                                     <td>
                                         <span class="fw-bold text-dark">{{ $q->kpi->nama ?? '-' }}</span>
                                     </td>
-                                    <td class="d-none d-sm-table-cell">
+                                    <td>
                                         <span class="badge badge-{{ strtolower($q->kpi->kompetensi ?? 'default') }}">
                                             {{ ucfirst($q->kpi->kompetensi ?? '-') }}
                                         </span>

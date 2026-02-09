@@ -55,9 +55,9 @@
                 <thead class="table-light text-center">
                     <tr>
                         <th>Guru</th>
-                        <th class="d-none d-sm-table-cell">KS</th>
-                        <th class="d-none d-sm-table-cell">RG</th>
-                        <th class="d-none d-sm-table-cell">WM</th>
+                        <th>KS</th>
+                        <th>RG</th>
+                        <th>WM</th>
                         <th>Nilai</th>
                         <th class="d-none d-md-table-cell">Rekomendasi</th>
                         <th>Aksi</th>
@@ -87,9 +87,9 @@
                     <tr>
                         <td class="fw-semibold">{{ $s->guru->nama }}</td>
 
-                        <td class="text-center d-none d-sm-table-cell">{{ number_format($s->nilai_kepala_sekolah, 2) }}</td>
-                        <td class="text-center d-none d-sm-table-cell">{{ number_format($s->nilai_rekan_guru, 2) }}</td>
-                        <td class="text-center d-none d-sm-table-cell">{{ $s->nilai_wali_murid ?? '-' }}</td>
+                        <td class="text-center">{{ number_format($s->nilai_kepala_sekolah, 2) }}</td>
+                        <td class="text-center">{{ number_format($s->nilai_rekan_guru, 2) }}</td>
+                        <td class="text-center">{{ $s->nilai_wali_murid ?? '-' }}</td>
 
                         {{-- NILAI AKHIR --}}
                         <td class="text-center">
@@ -121,37 +121,81 @@
                 </tbody>
             </table>
         </div>
+        </div>
     </div>
 
-    {{-- CARD RATA-RATA NILAI PER KOMPETENSI --}}
-    <div class="card shadow-sm border-0">
-        <div class="card-header bg-secondary text-white fw-semibold">
-            Rata-rata Nilai Per Kompetensi
+    {{-- CARD RINGKASAN PERFORMA PER INDIKATOR --}}
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-info text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">
+                    <i class="fas fa-chart-bar me-2"></i>Ringkasan Performa Per Indikator (Keseluruhan Guru)
+                </span>
+            </div>
         </div>
 
         <div class="table-responsive">
-            <table class="table table-bordered align-middle mb-0 text-center">
-                <thead class="table-light">
+            <table class="table table-bordered align-middle mb-0">
+                <thead class="table-light text-center">
                     <tr>
-                        <th class="text-start ps-4">Guru</th>
-                        <th>Pedagogik</th>
-                        <th>Kepribadian</th>
-                        <th>Sosial</th>
-                        <th>Profesional</th>
+                        <th class="text-start ps-4">Indikator</th>
+                        <th style="width: 10%;">Bobot</th>
+                        <th style="width: 15%;">Nilai Kontribusi</th>
+                        <th style="width: 15%;">Persentase Kinerja</th>
+                        <th style="width: 15%;">Kategori</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($scores as $s)
+                    @forelse($indicatorPerformance as $ind)
                     <tr>
-                        <td class="fw-semibold text-start">{{ $s->guru->nama }}</td>
-                        <td>{{ $s->competency_scores['pedagogik'] ?? 0 }}</td>
-                        <td>{{ $s->competency_scores['kepribadian'] ?? 0 }}</td>
-                        <td>{{ $s->competency_scores['sosial'] ?? 0 }}</td>
-                        <td>{{ $s->competency_scores['profesional'] ?? 0 }}</td>
+                        <td class="fw-semibold">{{ $ind['nama'] }}</td>
+                        <td class="text-center">{{ $ind['bobot'] }}</td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary fs-6 px-3 py-2">
+                                {{ number_format($ind['nilai_kontribusi'], 2) }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-{{ $ind['kategori_class'] }} fs-6 px-3 py-2">
+                                {{ number_format($ind['persentase_kinerja'], 2) }}%
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-{{ $ind['kategori_class'] }} fs-6 px-4 py-2 fw-semibold">
+                                {{ $ind['kategori_icon'] }} {{ strtoupper($ind['kategori']) }}
+                            </span>
+                        </td>
                     </tr>
-                    @endforeach
+                    @empty
+                    <tr>
+                        <td colspan="5" class="text-center text-muted">Belum ada data indikator.</td>
+                    </tr>
+                    @endforelse
                 </tbody>
+                <tfoot class="table-secondary">
+                    <tr>
+                        <td colspan="2" class="text-end fw-bold">Total Nilai Kontribusi:</td>
+                        <td class="text-center">
+                            @php
+                                $totalKontribusi = array_sum(array_column($indicatorPerformance, 'nilai_kontribusi'));
+                            @endphp
+                            <span class="badge bg-dark fs-6 px-3 py-2">
+                                {{ number_format($totalKontribusi, 2) }}
+                            </span>
+                        </td>
+                        <td colspan="2"></td>
+                    </tr>
+                </tfoot>
             </table>
+        </div>
+
+        <div class="card-footer bg-light">
+            <small class="text-muted">
+                <i class="fas fa-info-circle me-1"></i>
+                <strong>Nilai Kontribusi</strong> = (Avg 360° / 5) × Bobot | 
+                <strong>Persentase Kinerja</strong> = (Avg 360° / 5) × 100% | 
+                <strong>Kategori</strong> ditentukan berdasarkan Persentase Kinerja
+            </small>
         </div>
     </div>
 
@@ -225,61 +269,53 @@
                         <i class="fas fa-star me-2"></i>2. Nilai Akhir
                     </h6>
                     <p class="mb-3">
-                        Nilai akhir merupakan penjumlahan dari kontribusi berbobot setiap role:
+                        Nilai akhir diperoleh dari penjumlahan <strong>Nilai Kontribusi</strong> seluruh indikator penilaian.
                     </p>
                     <div class="card bg-light border-0 mb-4">
                         <div class="card-body">
-                            <p class="mb-2 fw-semibold">NILAI AKHIR = KS + RG + WM</p>
+                            <p class="mb-2 fw-semibold">NILAI AKHIR = Σ (Nilai Kontribusi Indikator)</p>
                             <p class="mb-0 text-muted small">
-                                Dimana KS, RG, dan WM sudah merupakan nilai terbobot (rata-rata × bobot role)
+                                Semakin tinggi kinerja pada indikator dengan bobot besar, semakin besar kontribusinya pada nilai akhir.
                             </p>
                         </div>
                     </div>
 
                     <h6 class="fw-bold text-primary mb-3">
-                        <i class="fas fa-clipboard-list me-2"></i>3. Nilai Per Kompetensi
+                        <i class="fas fa-calculator me-2"></i>3. Detail Perhitungan Indikator
                     </h6>
                     <p class="mb-3">
-                        Setiap pertanyaan dalam penilaian dikategorikan dalam 4 kompetensi guru:
+                        Setiap indikator memiliki dua metrik utama:
                     </p>
-                    <div class="row g-2 mb-4">
+                    <div class="row g-3 mb-4">
                         <div class="col-md-6">
-                            <div class="card border-primary h-100">
+                            <div class="card border-info h-100">
                                 <div class="card-body p-3">
-                                    <h6 class="text-primary mb-1"><i class="fas fa-chalkboard-teacher me-2"></i>Pedagogik</h6>
-                                    <small class="text-muted">Kemampuan dalam mengelola pembelajaran</small>
+                                    <h6 class="text-info mb-2 fw-bold">Nilai Kontribusi</h6>
+                                    <div class="bg-light p-2 rounded mb-2 text-center font-monospace small">
+                                        (Rata-rata 360° / 5) × Bobot Indikator
+                                    </div>
+                                    <small class="text-muted d-block">
+                                        Menunjukkan besarnya sumbangsih indikator tersebut terhadap Nilai Akhir guru.
+                                        Dipengaruhi oleh bobot indikator.
+                                    </small>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="card border-success h-100">
                                 <div class="card-body p-3">
-                                    <h6 class="text-success mb-1"><i class="fas fa-user-check me-2"></i>Kepribadian</h6>
-                                    <small class="text-muted">Sikap dan karakter guru</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card border-info h-100">
-                                <div class="card-body p-3">
-                                    <h6 class="text-info mb-1"><i class="fas fa-comments me-2"></i>Sosial</h6>
-                                    <small class="text-muted">Kemampuan berinteraksi dan berkomunikasi</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card border-warning h-100">
-                                <div class="card-body p-3">
-                                    <h6 class="text-warning mb-1"><i class="fas fa-graduation-cap me-2"></i>Profesional</h6>
-                                    <small class="text-muted">Penguasaan materi dan pengembangan diri</small>
+                                    <h6 class="text-success mb-2 fw-bold">Persentase Kinerja</h6>
+                                    <div class="bg-light p-2 rounded mb-2 text-center font-monospace small">
+                                        (Rata-rata 360° / 5) × 100%
+                                    </div>
+                                    <small class="text-muted d-block">
+                                        Menunjukkan efektivitas kinerja pada indikator tersebut (skala 0-100%).
+                                        Digunakan untuk menentukan kategori (Baik, Cukup, Kurang).
+                                    </small>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <p class="mb-0">
-                        Nilai per kompetensi dihitung dari rata-rata semua jawaban yang masuk dalam kategori kompetensi tersebut,
-                        dari semua role yang menilai.
-                    </p>
 
                     <hr class="my-4">
 

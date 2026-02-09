@@ -64,7 +64,74 @@ class ReportController extends Controller
             }
         }
 
-        $pdf = Pdf::loadView('reports.pdf_all', compact('scores', 'periode', 'totalGuru', 'rataRataSekolah', 'stats'))
+        // --- Hitung Ringkasan Performa Per Indikator (School-Wide) ---
+        $indicators = \App\Models\KpiIndicator::where('is_active', true)->get();
+        $indicatorPerformance = [];
+
+        foreach ($indicators as $ind) {
+            $totalAvg360 = 0;
+            $validTeacherCount = 0;
+
+            foreach ($scores as $s) {
+                $guru = $s->guru;
+                $jenisGuru = $guru->is_wali_kelas ? 'wali_kelas' : 'non_wali_kelas';
+                // Note: Optimization - could cache evaluator weights to avoid query in loop
+                $bobotEvaluator = \App\Models\EvaluatorWeight::where('jenis_guru', $jenisGuru)->first();
+
+                // Calculate 360 for this teacher on this indicator
+                // We need to re-calculate because it's not stored directly in FinalScore
+                // Logic identical to DashboardController
+                $u = function($role) use ($guru, $periode, $ind) {
+                    return EvaluationDetail::whereHas('question', function($q) use ($ind) {
+                            $q->where('kpi_indicator_id', $ind->id);
+                        })
+                        ->whereHas('evaluation', function ($q) use ($guru, $periode, $role) {
+                            $q->where('guru_id', $guru->id)
+                              ->where('periode_id', $periode->id)
+                              ->where('role_penilai', $role);
+                        })
+                        ->avg('nilai') ?? 0;
+                };
+
+                $avgKepsek = $u('kepala_sekolah');
+                $avgGuru   = $u('guru');
+                $avgWali   = $u('wali_murid');
+
+                if ($bobotEvaluator) {
+                    $avg360 = 
+                        ($avgKepsek * $bobotEvaluator->kepala_sekolah / 100) +
+                        ($avgGuru   * $bobotEvaluator->rekan_guru     / 100) +
+                        ($avgWali   * $bobotEvaluator->wali_murid     / 100);
+                } else {
+                    $avg360 = 0;
+                }
+                
+                $totalAvg360 += $avg360;
+                $validTeacherCount++;
+            }
+
+            $schoolAvg360 = $validTeacherCount > 0 ? $totalAvg360 / $validTeacherCount : 0;
+            
+            // Metrics
+            $persentaseKinerja = ($schoolAvg360 / 5) * 100;
+            $nilaiKontribusi = ($schoolAvg360 / 5) * $ind->bobot;
+
+            // Category
+            if ($persentaseKinerja >= 90) $kategori = 'Sangat Baik';
+            elseif ($persentaseKinerja >= 80) $kategori = 'Baik';
+            elseif ($persentaseKinerja > 50) $kategori = 'Cukup';
+            else $kategori = 'Kurang';
+
+            $indicatorPerformance[] = [
+                'nama' => $ind->nama,
+                'bobot' => $ind->bobot,
+                'nilai_kontribusi' => $nilaiKontribusi,
+                'persentase_kinerja' => $persentaseKinerja,
+                'kategori' => $kategori
+            ];
+        }
+
+        $pdf = Pdf::loadView('reports.pdf_all', compact('scores', 'periode', 'totalGuru', 'rataRataSekolah', 'stats', 'indicatorPerformance'))
             ->setPaper('a4', 'landscape');
 
         return $pdf->stream('Laporan_Rekap_KPI_' . str_replace('/', '-', $periode->tahun_ajaran) . '.pdf');

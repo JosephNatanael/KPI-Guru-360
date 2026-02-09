@@ -312,6 +312,95 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
             $kategoriCounts[] = $count;
         }
 
+        // 5️⃣ INDICATOR PERFORMANCE SUMMARY (SCHOOL-WIDE)
+        $indicatorPerformance = [];
+        $strongestIndicator = null;
+        $weakestIndicator = null;
+        $maxPersentase = -1;
+        $minPersentase = 101;
+        
+        foreach ($indicators as $ind) {
+            // Calculate school-wide average 360° for this indicator
+            $totalAvg360 = 0;
+            $validTeacherCount = 0;
+            
+            foreach ($scores as $score) {
+                $guru = $score->guru;
+                $jenisGuru = $guru->is_wali_kelas ? 'wali_kelas' : 'non_wali_kelas';
+                $bobotEvaluator = EvaluatorWeight::where('jenis_guru', $jenisGuru)->first();
+                
+                $u = function($role) use ($guru, $periode, $ind) {
+                    return EvaluationDetail::whereHas('question', function($q) use ($ind) {
+                            $q->where('kpi_indicator_id', $ind->id);
+                        })
+                        ->whereHas('evaluation', function ($q) use ($guru, $periode, $role) {
+                            $q->where('guru_id', $guru->id)
+                              ->where('periode_id', $periode->id)
+                              ->where('role_penilai', $role);
+                        })
+                        ->avg('nilai') ?? 0;
+                };
+
+                $avgKepsek = $u('kepala_sekolah');
+                $avgGuru   = $u('guru');
+                $avgWali   = $u('wali_murid');
+
+                if ($bobotEvaluator) {
+                    $avg360 = 
+                        ($avgKepsek * $bobotEvaluator->kepala_sekolah / 100) +
+                        ($avgGuru   * $bobotEvaluator->rekan_guru     / 100) +
+                        ($avgWali   * $bobotEvaluator->wali_murid     / 100);
+                } else {
+                    $avg360 = 0;
+                }
+                
+                $totalAvg360 += $avg360;
+                $validTeacherCount++;
+            }
+            
+            $schoolAvg360 = $validTeacherCount > 0 ? $totalAvg360 / $validTeacherCount : 0;
+            $persentaseKinerja = ($schoolAvg360 / 5) * 100;
+            $nilaiKontribusi = ($schoolAvg360 / 5) * $ind->bobot;
+            
+            if ($persentaseKinerja >= 90) {
+                $kategori = 'Sangat Baik';
+                $kategoriIcon = '⭐';
+                $kategoriClass = 'success';
+            } elseif ($persentaseKinerja >= 80) {
+                $kategori = 'Baik';
+                $kategoriIcon = '✅';
+                $kategoriClass = 'primary';
+            } elseif ($persentaseKinerja > 50) {
+                $kategori = 'Cukup';
+                $kategoriIcon = '⚠';
+                $kategoriClass = 'warning';
+            } else {
+                $kategori = 'Kurang';
+                $kategoriIcon = '❌';
+                $kategoriClass = 'danger';
+            }
+            
+            $indicatorData = [
+                'nama' => $ind->nama,
+                'bobot' => $ind->bobot,
+                'nilai_kontribusi' => round($nilaiKontribusi, 2),
+                'persentase_kinerja' => round($persentaseKinerja, 2),
+                'kategori' => $kategori,
+                'kategori_icon' => $kategoriIcon,
+                'kategori_class' => $kategoriClass,
+            ];
+            
+            $indicatorPerformance[] = $indicatorData;
+            
+            if ($persentaseKinerja > $maxPersentase) {
+                $maxPersentase = $persentaseKinerja;
+                $strongestIndicator = $indicatorData;
+            }
+            if ($persentaseKinerja < $minPersentase) {
+                $minPersentase = $persentaseKinerja;
+                $weakestIndicator = $indicatorData;
+            }
+        }
 
 
         return view('dashboard.index', [
@@ -342,6 +431,12 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
             'trendLabels' => $trendLabels,
             'trendData' => $trendData,
             'isAdmin' => $isAdmin,
+            
+            // Indicator Performance
+            'indicatorPerformance' => $indicatorPerformance,
+            'strongestIndicator' => $strongestIndicator,
+            'weakestIndicator' => $weakestIndicator,
+            'scores' => $scores,
         ]);
     }
 

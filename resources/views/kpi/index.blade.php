@@ -53,7 +53,7 @@
                         <thead>
                             <tr>
                                 <th>Nama KPI</th>
-                                <th class="d-none d-sm-table-cell">Kompetensi</th>
+                                <th>Kompetensi</th>
                                 <th class="d-none d-md-table-cell">Bobot (%)</th>
                                 <th class="d-none d-md-table-cell">Status</th>
                                 <th class="text-end">Aksi</th>
@@ -65,7 +65,7 @@
                                 <td>
                                     <span class="fw-bold text-dark">{{ $k->nama }}</span>
                                 </td>
-                                <td class="d-none d-sm-table-cell">
+                                <td>
                                     <span class="badge badge-{{ strtolower($k->kompetensi) }}">
                                         {{ ucfirst($k->kompetensi) }}
                                     </span>
@@ -121,7 +121,7 @@
                         <thead>
                             <tr>
                                 <th>Nama KPI</th>
-                                <th class="d-none d-sm-table-cell">Kompetensi</th>
+                                <th>Kompetensi</th>
                                 <th class="d-none d-md-table-cell">Bobot (%)</th>
                                 <th class="d-none d-md-table-cell">Status</th>
                                 <th class="text-end">Aksi</th>
@@ -131,7 +131,7 @@
                             @forelse($inactiveKpis as $k)
                             <tr>
                                 <td>{{ $k->nama }}</td>
-                                <td class="d-none d-sm-table-cell">
+                                <td>
                                     <span class="badge badge-{{ strtolower($k->kompetensi) }}">
                                         {{ ucfirst($k->kompetensi) }}
                                     </span>
