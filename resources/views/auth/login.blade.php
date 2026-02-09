@@ -357,7 +357,8 @@
                         <i class="fas fa-school"></i>
                     </div>
                     
-                    <h1 class="app-name">SEKOLAH KRISTEN PERMATA HATI MANADO</h1>
+                    <h1 class="app-name">PENILAIAN KINERJA GURU</h1>
+                    <h5 class="app-subtitle" style="color: #dfe5e9ff;">SEKOLAH KRISTEN PERMATA HATI MANADO</h5>
         
                 </div>
             </div>
