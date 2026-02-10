@@ -17,7 +17,7 @@
                     <thead>
                         <tr>
                             <th>Nama Guru</th>
-                            <th>Jabatan</th>
+                            <th>Kelas</th>
                             <th class="text-end">Aksi</th>
                         </tr>
                     </thead>
@@ -25,7 +25,7 @@
                         @foreach($unevaluatedGurus as $g)
                         <tr>
                             <td class="align-middle">{{ $g->nama }}</td>
-                            <td class="align-middle">{{ $g->jabatan ?? '-' }}</td>
+                            <td class="align-middle">{{ $g->is_wali_kelas ? $g->kelas : '-' }}</td>
                             <td class="text-end">
                                 <a href="{{ route('evaluation.create', $g->id) }}" class="btn btn-sm btn-primary">
                                     <i class="fas fa-pen"></i> Nilai Sekarang
