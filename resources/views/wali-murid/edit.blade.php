@@ -20,14 +20,12 @@
 
         <div class="mb-3">
             <label>User (Akun Wali Murid)</label>
-            <select name="user_id" class="form-control">
-                <option value="">-- Pilih User --</option>
-                @foreach($users as $u)
-                    <option value="{{ $u->id }}" {{ old('user_id', $waliMurid->user_id) == $u->id ? 'selected' : '' }}>
-                        {{ $u->name }} ({{ $u->email }})
-                    </option>
-                @endforeach
-            </select>
+            <!-- Menampilkan User saat ini, jika ingin mengganti email, bisa langsung di sini -->
+            <input type="text" class="form-control mb-2" value="{{ $waliMurid->user->name }} ({{ $waliMurid->user->email }})" disabled>
+            
+            <label>Ganti Email Login</label>
+            <input type="email" name="email" class="form-control" value="{{ old('email', $waliMurid->user->email) }}">
+            <small class="text-muted">Mengganti email ini akan mengubah email login User terkait.</small>
         </div>
 
         <div class="mb-3">

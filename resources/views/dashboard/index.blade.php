@@ -125,7 +125,7 @@
                 {{-- Global Stats (Admin & Kepsek) --}}
                 <div class="card text-bg-primary mb-3">
                     <div class="card-body">
-                        <h6 class="card-title">Ringkasan Indikator</h6>
+                        <h6 class="card-title">Nilai Rata-Rata</h6>
                         <h3 class="mb-0">{{ $rataRataNilai }}</h3>
                         <a href="javascript:void(0)" class="stretched-link" data-bs-toggle="modal" data-bs-target="#modalRataRata"></a>
                     </div>

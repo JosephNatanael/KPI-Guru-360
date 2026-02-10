@@ -25,6 +25,11 @@
         </div>
 
         <div class="mb-3">
+            <label>Email</label>
+            <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+        </div>
+
+        <div class="mb-3">
             <label>Nama Anak</label>
             <input type="text" name="nama_anak" class="form-control" value="{{ old('nama_anak') }}">
         </div>

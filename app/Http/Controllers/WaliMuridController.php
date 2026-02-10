@@ -43,28 +43,18 @@ class WaliMuridController extends Controller
             'nama'      => 'required|string|max:191',
             'nama_anak' => 'required|string|max:191',
             'kelas'     => 'required|string|max:191',
-            // Email validation removed
+            'email'     => 'required|email|unique:users,email',
         ]);
 
-        // Create User first with temporary email
-        $tempEmail = 'temp_' . uniqid() . '@wali.sekolah.id';
-        
+        // Create User with input email
         $user = User::create([
             'name' => $request->nama,
-            'email' => $tempEmail,
+            'email' => $request->email,
             'password' => bcrypt('password'), // default password
             'role' => 'wali_murid',
         ]);
-
-        // Generate correct email: FirstnameLastnameInitial(ID)@gmail.com
-        // Misal: Joseph Morasa -> josephM(id)@gmail.com
-        $parts = explode(' ', trim($request->nama));
-        $firstName = strtolower($parts[0]);
-        $lastNameInitial = isset($parts[1]) ? strtoupper(substr($parts[1], 0, 1)) : '';
         
-        $finalEmail = $firstName . $lastNameInitial . $user->id . '@gmail.com';
-        
-        $user->update(['email' => $finalEmail]);
+        // Auto email generation removed.
 
         // Create WaliMurid linked to User
         WaliMurid::create([
@@ -75,7 +65,7 @@ class WaliMuridController extends Controller
         ]);
 
         return redirect()->route('wali-murid.index')
-            ->with('success', 'Data wali murid berhasil ditambahkan. Akun dibuat dengan Email: ' . $finalEmail . ' dan Password: password.');
+            ->with('success', 'Data wali murid berhasil ditambahkan. Akun dibuat dengan Email: ' . $request->email . ' dan Password: password.');
     }
 
     /**
@@ -112,13 +102,20 @@ class WaliMuridController extends Controller
     public function update(Request $request, WaliMurid $wali_murid)
     {
         $request->validate([
-            'user_id'   => 'required|exists:users,id|unique:wali_murids,user_id,' . $wali_murid->id,
+            // 'user_id'   => 'required|exists:users,id|unique:wali_murids,user_id,' . $wali_murid->id, // Removed as we are editing the existing user/wali relation or simple profile
             'nama'      => 'required|string|max:191',
             'nama_anak' => 'required|string|max:191',
             'kelas'     => 'required|string|max:191',
+            'email'     => 'required|email|unique:users,email,' . $wali_murid->user_id,
         ]);
 
-        $wali_murid->update($request->only('user_id', 'nama', 'nama_anak', 'kelas'));
+        $wali_murid->update($request->only('nama', 'nama_anak', 'kelas'));
+        
+        // Update user email and name if changed
+        $wali_murid->user->update([
+            'name' => $request->nama,
+            'email' => $request->email
+        ]);
 
         return redirect()->route('wali-murid.index')
             ->with('success', 'Data wali murid berhasil diperbarui.');

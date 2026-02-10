@@ -97,13 +97,15 @@
             genericFields.style.display = 'block';
         }
 
-        // Hide Email manual input for Wali Murid (Auto-generated)
-        let emailBox = document.getElementById('emailBox');
-        if (role === 'wali_murid') {
-            emailBox.style.display = 'none';
-        } else {
-            emailBox.style.display = 'block';
-        }
+        // Hide Email manual input for Wali Murid (Auto-generated) - REMOVED
+        // let emailBox = document.getElementById('emailBox');
+        // if (role === 'wali_murid') {
+        //     emailBox.style.display = 'none';
+        // } else {
+        //     emailBox.style.display = 'block';
+        // }
+        // Always show email box
+        document.getElementById('emailBox').style.display = 'block';
         
         // Toggle Kelas box for wali kelas
         toggleKelasBox();

@@ -34,10 +34,8 @@ class UserController extends Controller
             'role'  => 'required|in:admin,kepala_sekolah,guru,wali_murid',
         ];
 
-        // Email required if not wali_murid
-        if ($request->role !== 'wali_murid') {
-             $rules['email'] = 'required|email|unique:users';
-        }
+        // Email is now required for everyone including wali_murid
+        $rules['email'] = 'required|email|unique:users';
 
         // Add validation for Guru profile fields
         if ($request->role === 'guru') {
@@ -65,11 +63,8 @@ class UserController extends Controller
 
         $request->validate($rules);
 
-        // Generate temporary email for wali murid to pass creation
+        // Use input email directly
         $email = $request->email;
-        if ($request->role === 'wali_murid') {
-             $email = 'temp_' . uniqid() . '@wali.sekolah.id';
-        }
 
         // Create User
         $user = User::create([
@@ -79,17 +74,7 @@ class UserController extends Controller
             'password' => Hash::make('password123') // password default
         ]);
 
-        // Fix Email for Wali Murid: FirstnameLastnameInitial(ID)@gmail.com
-        if ($request->role === 'wali_murid') {
-             $namaWali = $request->name; // Use generic Name
-             $parts = explode(' ', trim($namaWali));
-             $firstName = strtolower($parts[0]);
-             $lastNameInitial = isset($parts[1]) ? strtoupper(substr($parts[1], 0, 1)) : '';
-             
-             $newEmail = $firstName . $lastNameInitial . $user->id . '@gmail.com';
-             
-             $user->update(['email' => $newEmail]);
-        }
+        // Auto-fix email for Wali Murid logic REMOVED. Use input email.
 
         // Auto-create Guru profile if role is guru
         if ($request->role === 'guru') {
@@ -228,6 +213,14 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        // Manually delete related profiles before deleting user (no cascade in DB)
+        if ($user->waliMurid) {
+            $user->waliMurid->delete();
+        }
+        if ($user->guru) {
+            $user->guru->delete();
+        }
+
         $user->delete();
         return redirect()->route('user.index')->with('success', 'User berhasil dihapus!');
     }
