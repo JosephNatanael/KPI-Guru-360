@@ -12,7 +12,7 @@
 </div>
 
 <p>
-    Periode: {{ $periode->nama ?? $periode->id }}
+    Periode: {{ $periode->tahun_ajaran }} ({{ $periode->semester }})
 </p>
 
 <hr>
