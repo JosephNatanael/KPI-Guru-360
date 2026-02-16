@@ -497,24 +497,14 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
             }
         }
 
-        // 3️⃣ Ringkasan Kompetensi (hanya KPI aktif)
-        $kompetensiData = [
-            'pedagogik' => 0,
-            'kepribadian' => 0,
-            'sosial' => 0,
-            'profesional' => 0
-        ];
+        // 3️⃣ Grafik Persentase Kinerja Per Indikator (Ganti Ringkasan Kompetensi)
+        $indicatorPerformance = [];
         
         if ($periode) {
             $indicators = KpiIndicator::where('is_active', true)->get();
             $jenisGuru = $guru->is_wali_kelas ? 'wali_kelas' : 'non_wali_kelas';
             $bobotEvaluator = EvaluatorWeight::where('jenis_guru', $jenisGuru)->first();
             
-            $competencyStats = [];
-            foreach(['pedagogik', 'kepribadian', 'sosial', 'profesional'] as $c) {
-                $competencyStats[$c] = ['total' => 0, 'count' => 0];
-            }
-
             foreach ($indicators as $ind) {
                  $u = function($role) use ($guru, $periode, $ind) {
                     return EvaluationDetail::whereHas('question', function($q) use ($ind) {
@@ -541,19 +531,17 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
                     $avg360 = 0;
                 }
                 
-                // Rumus: Bobot * (Nilai 360 / 5)
-                $nilaiAkhirKontribusi = $ind->bobot * ($avg360 / 5);
+                // Persentase Kinerja (Avg360 / 5 * 100)
+                $persentaseKinerja = ($avg360 / 5) * 100;
 
-                if (isset($competencyStats[$ind->kompetensi])) {
-                    $competencyStats[$ind->kompetensi]['total'] += $nilaiAkhirKontribusi;
-                    $competencyStats[$ind->kompetensi]['count']++;
-                }
-            }
-
-            foreach($competencyStats as $comp => $stat) {
-                $kompetensiData[$comp] = $stat['count'] > 0 ? round($stat['total'] / $stat['count'], 2) : 0;
+                $indicatorPerformance[] = [
+                    'nama' => $ind->nama,
+                    'persentase' => round($persentaseKinerja, 2),
+                    'kompetensi' => ucfirst($ind->kompetensi)
+                ];
             }
         }
+
 
         // 4️⃣ Penilaian 360 Derajat
         $nilaiKepalaSekolah = 0;
@@ -569,7 +557,6 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
             $nilaiWaliMurid = $finalScore->nilai_wali_murid ?? 0;
             
             // Hitung jumlah penilai
-
             $jumlahKepalaSekolah = Evaluation::where('guru_id', $guru->id)
                 ->where('periode_id', $periode->id)
                 ->where('role_penilai', 'kepala_sekolah')
@@ -652,7 +639,8 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
             'nilaiPersentase',
             'kategoriKinerja',
             'rekomendasi',
-            'kompetensiData',
+            'rekomendasi',
+            'indicatorPerformance',
             'nilaiKepalaSekolah',
             'nilaiRekanGuru',
             'nilaiWaliMurid',

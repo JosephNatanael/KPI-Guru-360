@@ -77,7 +77,7 @@
 @if(!empty($indikatorRekap))
     <div class="table-responsive">
     <table class="table table-bordered">
-        <thead>
+        <thead class="table-light">
             <tr>
                 <th>Sub Kompetensi</th>
                 <th>Bobot (%)</th>
@@ -85,6 +85,8 @@
                 <th>RG</th>
                 <th>WM</th>
                 <th>Rata 360°</th>
+                <th>Skor (%)</th>
+                <th>Kategori</th>
                 <th>Nilai Akhir</th>
             </tr>
         </thead>
@@ -92,21 +94,41 @@
             @foreach($indikatorRekap as $row)
                 <tr>
                     <td>{{ $row['nama'] }}</td>
-                    <td>{{ $row['bobot'] }}</td>
-                    <td>{{ $row['nilai_ks'] }}</td>
-                    <td>{{ $row['nilai_rg'] }}</td>
-                    <td>{{ $row['nilai_wm'] }}</td>
-                    <td>{{ $row['rata360'] }}</td>
-                    <td>{{ $row['nilai_akhir'] }}</td>
+                    <td class="text-center">{{ $row['bobot'] }}%</td>
+                    <td class="text-center">{{ $row['nilai_ks'] }}</td>
+                    <td class="text-center">{{ $row['nilai_rg'] }}</td>
+                    <td class="text-center">{{ $row['nilai_wm'] }}</td>
+                    <td class="text-center fw-bold">{{ $row['rata360'] }}</td>
+                    <td class="text-center">
+                        @if($row['persentase'] >= 90)
+                            <span class="text-success fw-bold">{{ $row['persentase'] }}%</span>
+                        @elseif($row['persentase'] >= 80)
+                            <span class="text-primary fw-bold">{{ $row['persentase'] }}%</span>
+                        @elseif($row['persentase'] > 60)
+                            <span class="text-warning fw-bold">{{ $row['persentase'] }}%</span>
+                        @else
+                            <span class="text-danger fw-bold">{{ $row['persentase'] }}%</span>
+                        @endif
+                    </td>
+                    <td class="text-center">
+                        @if($row['kategori'] == 'Sangat Baik')
+                            <span class="badge bg-success">Sangat Baik</span>
+                        @elseif($row['kategori'] == 'Baik')
+                            <span class="badge bg-primary">Baik</span>
+                        @elseif($row['kategori'] == 'Cukup')
+                            <span class="badge bg-warning">Cukup</span>
+                        @else
+                            <span class="badge bg-danger">Kurang</span>
+                        @endif
+                    </td>
+                    <td class="text-center fw-bold">{{ $row['nilai_akhir'] }}</td>
                 </tr>
             @endforeach
         </tbody>
         <tfoot>
-            <tr>
-                <th>Total Nilai Akhir 360° Guru</th>
-                <th>{{ collect($indikatorRekap)->sum('bobot') }}%</th>
-                <th colspan="4"></th>
-                <th>≈ {{ number_format($totalNilaiAkhir, 2) }}</th>
+            <tr class="table-secondary">
+                <th colspan="8" class="text-end">Total Nilai Akhir Kontribusi</th>
+                <th class="text-center fs-5">≈ {{ number_format($totalNilaiAkhir, 2) }}</th>
             </tr>
         </tfoot>
     </table>

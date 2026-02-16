@@ -169,6 +169,13 @@ class RiwayatPenilaianController extends Controller
 
                 $totalNilaiAkhir += $nilaiAkhirIndikator;
 
+                $persentase = ($rata360 / 5) * 100;
+                $kategori = '-';
+                if ($persentase >= 90) $kategori = 'Sangat Baik';
+                elseif ($persentase >= 80) $kategori = 'Baik';
+                elseif ($persentase > 50) $kategori = 'Cukup';
+                else $kategori = 'Kurang';
+
                 $indikatorRekap[] = [
                     'nama'        => $indicator->nama,
                     'bobot'       => $indicator->bobot,
@@ -177,6 +184,8 @@ class RiwayatPenilaianController extends Controller
                     'nilai_wm'    => round($avgWali, 2),
                     'rata360'     => round($rata360, 2),
                     'nilai_akhir' => round($nilaiAkhirIndikator, 2),
+                    'persentase'  => round($persentase, 2),
+                    'kategori'    => $kategori,
                 ];
             }
         }

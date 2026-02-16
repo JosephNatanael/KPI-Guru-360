@@ -180,51 +180,21 @@
         </div>
     </div>
 
-    {{-- 4️⃣ Ringkasan Kompetensi --}}
+    {{-- 4️⃣ Persentase Kinerja Per Indikator --}}
     <div class="row mb-4">
         <div class="col-md-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Ringkasan Kompetensi</h5>
+                    <h5 class="mb-0">Persentase Kinerja Per Indikator</h5>
                 </div>
                 <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-center h-100">
-                                <div class="card-body">
-                                    <h6 class="text-muted">Pedagogik</h6>
-                                    <h3 class="mb-0">{{ $kompetensiData['pedagogik'] }}</h3>
-                                </div>
-                            </div>
+                    @if(count($indicatorPerformance) > 0)
+                        <div style="position: relative; height: 400px;">
+                            <canvas id="chartIndicatorPerformance"></canvas>
                         </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-center h-100">
-                                <div class="card-body">
-                                    <h6 class="text-muted">Kepribadian</h6>
-                                    <h3 class="mb-0">{{ $kompetensiData['kepribadian'] }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-center h-100">
-                                <div class="card-body">
-                                    <h6 class="text-muted">Sosial</h6>
-                                    <h3 class="mb-0">{{ $kompetensiData['sosial'] }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <div class="card text-center h-100">
-                                <div class="card-body">
-                                    <h6 class="text-muted">Profesional</h6>
-                                    <h3 class="mb-0">{{ $kompetensiData['profesional'] }}</h3>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mt-3" style="position: relative; height: 300px;">
-                        <canvas id="chartKompetensi"></canvas>
-                    </div>
+                    @else
+                        <p class="text-muted text-center mb-0">Belum ada data penilaian untuk ditampilkan pada grafik ini.</p>
+                    @endif
                 </div>
             </div>
         </div>
@@ -346,47 +316,71 @@
 @section('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    // Grafik Ringkasan Kompetensi
-    const ctxKompetensi = document.getElementById('chartKompetensi');
-    if (ctxKompetensi) {
-        new Chart(ctxKompetensi, {
+    // Grafik Persentase Kinerja Per Indikator
+    const ctxIndicator = document.getElementById('chartIndicatorPerformance');
+    if (ctxIndicator) {
+        const indicatorData = @json($indicatorPerformance);
+        const labels = indicatorData.map(d => d.nama);
+        const data = indicatorData.map(d => d.persentase);
+        
+        // Dynamic colors based on percentage
+        const backgroundColors = data.map(val => {
+            if (val >= 90) return 'rgba(75, 192, 192, 0.6)'; // Green
+            if (val >= 75) return 'rgba(54, 162, 235, 0.6)'; // Blue
+            if (val >= 60) return 'rgba(255, 206, 86, 0.6)'; // Yellow
+            return 'rgba(255, 99, 132, 0.6)'; // Red
+        });
+        
+        const borderColors = data.map(val => {
+            if (val >= 90) return 'rgba(75, 192, 192, 1)';
+            if (val >= 75) return 'rgba(54, 162, 235, 1)';
+            if (val >= 60) return 'rgba(255, 206, 86, 1)';
+            return 'rgba(255, 99, 132, 1)';
+        });
+
+        new Chart(ctxIndicator, {
             type: 'bar',
             data: {
-                labels: ['Pedagogik', 'Kepribadian', 'Sosial', 'Profesional'],
+                labels: labels,
                 datasets: [{
-                    label: 'Nilai Kompetensi',
-                    data: [
-                        {{ $kompetensiData['pedagogik'] }},
-                        {{ $kompetensiData['kepribadian'] }},
-                        {{ $kompetensiData['sosial'] }},
-                        {{ $kompetensiData['profesional'] }}
-                    ],
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.6)',
-                        'rgba(75, 192, 192, 0.6)',
-                        'rgba(255, 206, 86, 0.6)',
-                        'rgba(143, 60, 238, 0.6)',
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(156, 35, 226, 1)',
-                    ],
+                    label: 'Persentase Kinerja (%)',
+                    data: data,
+                    backgroundColor: backgroundColors,
+                    borderColor: borderColors,
                     borderWidth: 1
                 }]
             },
             options: {
+                indexAxis: 'y', // Horizontal Bar Chart for better readability of long labels
                 maintainAspectRatio: false,
                 scales: {
-                    y: {
+                    x: {
                         beginAtZero: true,
-                        max: 100
+                        max: 100,
+                        title: {
+                            display: true,
+                            text: 'Persentase (%)'
+                        }
+                    },
+                    y: {
+                        ticks: {
+                            autoSkip: false, // Show all labels
+                            font: {
+                                size: 11
+                            }
+                        }
                     }
                 },
                 plugins: {
                     legend: {
                         display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.parsed.x + '%';
+                            }
+                        }
                     }
                 }
             }
