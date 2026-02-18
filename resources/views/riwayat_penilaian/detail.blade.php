@@ -12,7 +12,7 @@
 </div>
 
 <p>
-    Periode: {{ $periode->tahun_ajaran }} ({{ $periode->semester }})
+    Periode: {{ $periode->tahun_ajaran }} ({{ ucfirst($periode->semester) }})
 </p>
 
 <hr>
