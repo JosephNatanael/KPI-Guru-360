@@ -84,7 +84,7 @@
                         <div class="col-md-4 text-center">
                             <h6 class="text-muted">Nilai Persentase</h6>
                             @if($nilaiPersentase > 0)
-                                <h2 class="mb-0 {{ $nilaiPersentase >= 70 ? 'text-success' : ($nilaiPersentase >= 55 ? 'text-warning' : 'text-danger') }}">
+                                <h2 class="mb-0 {{ $nilaiPersentase >= 80 ? 'text-success' : ($nilaiPersentase >= 55 ? 'text-warning' : 'text-danger') }}">
                                     {{ $nilaiPersentase }}%
                                 </h2>
                             @else
@@ -326,15 +326,15 @@
         // Dynamic colors based on percentage
         const backgroundColors = data.map(val => {
             if (val >= 90) return 'rgba(75, 192, 192, 0.6)'; // Green
-            if (val >= 75) return 'rgba(54, 162, 235, 0.6)'; // Blue
-            if (val >= 60) return 'rgba(255, 206, 86, 0.6)'; // Yellow
+            if (val >= 80) return 'rgba(54, 162, 235, 0.6)'; // Blue
+            if (val >= 51) return 'rgba(255, 206, 86, 0.6)'; // Yellow
             return 'rgba(255, 99, 132, 0.6)'; // Red
         });
         
         const borderColors = data.map(val => {
             if (val >= 90) return 'rgba(75, 192, 192, 1)';
-            if (val >= 75) return 'rgba(54, 162, 235, 1)';
-            if (val >= 60) return 'rgba(255, 206, 86, 1)';
+            if (val >= 80) return 'rgba(54, 162, 235, 1)';
+            if (val >= 51) return 'rgba(255, 206, 86, 1)';
             return 'rgba(255, 99, 132, 1)';
         });
 

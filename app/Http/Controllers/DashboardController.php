@@ -485,11 +485,11 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
                 $rekomendasi = $finalScore->recommendation->nama ?? '-';
                 
                 // Tentukan kategori kinerja berdasarkan nilai
-                if ($nilaiPersentase >= 85) {
+                if ($nilaiPersentase >= 90) {
                     $kategoriKinerja = 'Sangat Baik';
-                } elseif ($nilaiPersentase >= 70) {
+                } elseif ($nilaiPersentase >= 80) {
                     $kategoriKinerja = 'Baik';
-                } elseif ($nilaiPersentase >= 55) {
+                } elseif ($nilaiPersentase >= 51) {
                     $kategoriKinerja = 'Cukup';
                 } else {
                     $kategoriKinerja = 'Perlu Perbaikan';
