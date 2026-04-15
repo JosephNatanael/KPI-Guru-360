@@ -38,12 +38,16 @@ class EvaluationController extends Controller
         // Tentukan guru yang BOLEH dinilai berdasarkan role
         $eligibleGurus = collect();
 
-        if ($user->role === 'kepala_sekolah' || $user->role === 'admin') {
+        if ($user->role === 'admin') {
             $eligibleGurus = Guru::all();
+        } elseif ($user->role === 'kepala_sekolah') {
+            $eligibleGurus = Guru::where('jenjang', $user->jenjang)->get();
         } elseif ($user->role === 'guru') {
-            // Guru menilai rekan sejawat (kecuali diri sendiri)
+            // Guru menilai rekan sejawat (kecuali diri sendiri, dan dalam jenjang yang sama)
             $currentGuruId = $user->guru->id ?? null;
-            $eligibleGurus = Guru::where('id', '!=', $currentGuruId)->get();
+            $eligibleGurus = Guru::where('jenjang', $user->jenjang)
+                ->where('id', '!=', $currentGuruId)
+                ->get();
         } elseif ($user->role === 'wali_murid') {
             // Wali murid hanya menilai wali kelas anaknya
             $wali = WaliMurid::where('user_id', $user->id)->first();
@@ -77,16 +81,24 @@ class EvaluationController extends Controller
             ->pluck('guru_id')
             ->toArray();
 
-        // Kepala sekolah & Admin → boleh menilai semua guru
-        if ($user->role === 'kepala_sekolah' || $user->role === 'admin') {
+        // Admin → boleh menilai semua guru
+        if ($user->role === 'admin') {
             $gurus = Guru::all();
             return view('evaluation.pilih-guru', compact('gurus', 'periode', 'evaluatedGuruIds'));
         }
 
-        // Guru → peer review (tidak boleh menilai diri sendiri)
+        // Kepala sekolah → boleh menilai guru di jenjangnya
+        if ($user->role === 'kepala_sekolah') {
+            $gurus = Guru::where('jenjang', $user->jenjang)->get();
+            return view('evaluation.pilih-guru', compact('gurus', 'periode', 'evaluatedGuruIds'));
+        }
+
+        // Guru → peer review (tidak boleh menilai diri sendiri, dalam jenjang yang sama)
         if ($user->role === 'guru') {
             $currentGuruId = $user->guru->id ?? null;
-            $gurus = Guru::where('id', '!=', $currentGuruId)->get();
+            $gurus = Guru::where('jenjang', $user->jenjang)
+                ->where('id', '!=', $currentGuruId)
+                ->get();
             return view('evaluation.pilih-guru', compact('gurus', 'periode', 'evaluatedGuruIds'));
         }
 
@@ -141,10 +153,12 @@ class EvaluationController extends Controller
                 ->with('error', 'Tidak ada periode aktif. Silakan aktifkan periode terlebih dahulu.');
         }
 
-        // Cek KPI aktif dengan pertanyaan-pertanyaannya untuk periode ini
+        $userRole = Auth::user()->role;
+        // Cek KPI aktif dengan pertanyaan-pertanyaannya untuk periode ini dan role penilai ini
         $kpis = KpiIndicator::where('is_active', true)
-            ->with(['questions' => function($query) use ($periode) {
+            ->with(['questions' => function($query) use ($periode, $userRole) {
                 $query->where('periode_id', $periode->id)
+                      ->where('role_penilai', $userRole)
                       ->orderBy('urutan', 'asc');
             }])->get();
         
@@ -186,8 +200,9 @@ class EvaluationController extends Controller
 
         // Ambil semua KPI aktif dengan pertanyaan-pertanyaannya untuk periode ini untuk validasi
         $kpis = KpiIndicator::where('is_active', true)
-            ->with(['questions' => function($query) use ($periode) {
-                $query->where('periode_id', $periode->id);
+            ->with(['questions' => function($query) use ($periode, $user) {
+                $query->where('periode_id', $periode->id)
+                      ->where('role_penilai', $user->role);
             }])->get();
         
         // Buat rules validasi dinamis untuk setiap pertanyaan
@@ -278,8 +293,9 @@ class EvaluationController extends Controller
 
         // Ambil KPI aktif dan pertanyaan untuk periode evaluasi ini
         $kpis = KpiIndicator::where('is_active', true)
-            ->with(['questions' => function($query) use ($periode) {
+            ->with(['questions' => function($query) use ($periode, $evaluation) {
                 $query->where('periode_id', $periode->id)
+                      ->where('role_penilai', $evaluation->role_penilai)
                       ->orderBy('urutan', 'asc');
             }])->get();
 
@@ -301,7 +317,8 @@ class EvaluationController extends Controller
         // Validasi sama seperti store
         $kpis = KpiIndicator::where('is_active', true)
             ->with(['questions' => function($query) use ($evaluation) {
-                $query->where('periode_id', $evaluation->periode_id);
+                $query->where('periode_id', $evaluation->periode_id)
+                      ->where('role_penilai', $evaluation->role_penilai);
             }])->get();
         
         $rules = [];

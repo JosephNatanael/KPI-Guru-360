@@ -26,10 +26,19 @@ class FinalScoreController extends Controller
             return back()->with('error', 'Tidak ada periode penilaian aktif.');
         }
 
+        $user = auth()->user();
+
         // Ambil guru yang sudah dinilai di periode ini saja
-        $gurus = Guru::whereHas('evaluations', function ($q) use ($periode) {
+        $gurusQuery = Guru::whereHas('evaluations', function ($q) use ($periode) {
             $q->where('periode_id', $periode->id);
-        })->get();
+        });
+
+        // Filter jenjang untuk kepala sekolah
+        if ($user->role === 'kepala_sekolah') {
+            $gurusQuery->where('jenjang', $user->jenjang);
+        }
+
+        $gurus = $gurusQuery->get();
 
         // Ambil semua indikator KPI yang aktif
         $indicators = KpiIndicator::where('is_active', true)->get();
@@ -168,9 +177,24 @@ class FinalScoreController extends Controller
             return back()->with('error', 'Tidak ada periode aktif.');
         }
 
+        $user = auth()->user();
+
         $query = FinalScore::with(['guru', 'recommendation'])
             ->has('guru') // HANYA AMBIL YANG GURUNYA MASIH ADA
             ->where('periode_id', $periode->id);
+
+        if ($user->role === 'kepala_sekolah') {
+            $query->whereHas('guru', function($q) use ($user) {
+                $q->where('jenjang', $user->jenjang);
+            });
+        }
+
+        // Filter jenjang khusus admin
+        if ($user->role === 'admin' && $request->filled('jenjang')) {
+            $query->whereHas('guru', function($q) use ($request) {
+                $q->where('jenjang', $request->jenjang);
+            });
+        }
 
         if ($request->has('rekomendasi')) {
             // Filter by nama rekomendasi via relationship
@@ -186,6 +210,11 @@ class FinalScoreController extends Controller
         }
 
         $scores = $query->get();
+        
+        $jenjangs = [];
+        if ($user->role === 'admin') {
+            $jenjangs = Guru::select('jenjang')->distinct()->whereNotNull('jenjang')->pluck('jenjang')->toArray();
+        }
 
         $indicators = KpiIndicator::where('is_active', true)->get();
 
@@ -332,7 +361,7 @@ class FinalScoreController extends Controller
             ];
         }
 
-        return view('finalscore.index', compact('scores', 'periode', 'indicatorPerformance'));
+        return view('finalscore.index', compact('scores', 'periode', 'indicatorPerformance', 'jenjangs'));
     }
     /**
      * Tampilkan guru yang belum dinilai
@@ -344,12 +373,20 @@ class FinalScoreController extends Controller
             return back()->with('error', 'Tidak ada periode aktif.');
         }
 
+        $user = auth()->user();
+
         // Ambil ID guru yang sudah memiliki nilai akhir di periode ini
         $assessedGuruIds = FinalScore::where('periode_id', $periode->id)
             ->pluck('guru_id');
 
         // Ambil guru yang TIDAK ada di list yang sudah dinilai
-        $gurus = Guru::whereNotIn('id', $assessedGuruIds)->get();
+        $gurusQuery = Guru::whereNotIn('id', $assessedGuruIds);
+
+        if ($user->role === 'kepala_sekolah') {
+            $gurusQuery->where('jenjang', $user->jenjang);
+        }
+
+        $gurus = $gurusQuery->get();
 
         return view('finalscore.unassessed', compact('gurus', 'periode'));
     }

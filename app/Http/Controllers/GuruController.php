@@ -25,6 +25,7 @@ class GuruController extends Controller
         $request->validate([
             'nama' => 'required',
             // nip removed
+            'jenjang' => 'required|in:PG/TK,SD,SMP',
             'is_wali_kelas' => 'required|boolean',
             'kelas' => [
                 'nullable',
@@ -52,6 +53,7 @@ class GuruController extends Controller
                 'email' => $emailName . rand(10,99) . '@gmail.com',
                 'password' => bcrypt('password123'), // Default logic changed
                 'role' => 'guru',
+                'jenjang' => $guru->jenjang,
                 // 'guru_id' => $guru->id, // Assuming users table might not have guru_id, but if it does, keep it.
                 // But primarily we need to link the Guru to the User.
             ]);
@@ -100,6 +102,11 @@ class GuruController extends Controller
             DB::beginTransaction();
 
             $guru->update($request->all());
+
+            // Update associated User's jenjang since it was updated
+            if ($guru->user) {
+                $guru->user->update(['jenjang' => $request->jenjang]);
+            }
 
             // Jika kelas berubah, perbarui kelas di data wali murid yang memakai kelas tersebut
             $newKelas = $request->kelas;

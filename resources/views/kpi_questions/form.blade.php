@@ -23,6 +23,21 @@
 </div>
 
 <div class="mb-3">
+    <label class="form-label">Role Penilai</label>
+    @php
+        $rolesLabel = [
+            'kepala_sekolah' => 'Kepala Sekolah',
+            'guru'           => 'Guru (Rekan Sejawat)',
+            'wali_murid'     => 'Wali Murid',
+        ];
+        $currentRole = old('role_penilai', $question->role_penilai ?? ($rolePenilai ?? 'kepala_sekolah'));
+    @endphp
+    <input type="text" class="form-control bg-light" value="{{ $rolesLabel[$currentRole] ?? $currentRole }}" readonly>
+    <input type="hidden" name="role_penilai" value="{{ $currentRole }}">
+    <small class="text-muted">Pertanyaan ini hanya akan muncul saat role penilai di atas melakukan evaluasi.</small>
+</div>
+
+<div class="mb-3">
     <label for="kpi_indicator_id" class="form-label">KPI</label>
     <select name="kpi_indicator_id" id="kpi_indicator_id" class="form-control" required>
         <option value="">-- Pilih KPI --</option>

@@ -27,6 +27,7 @@
                         <thead>
                             <tr>
                                 <th>Nama Guru</th>
+                                <th>Jenjang</th>
                                 <th>Wali Kelas</th>
                                 <th class="text-end">Aksi</th>
                             </tr>
@@ -43,6 +44,13 @@
                                             <div class="fw-bold text-dark">{{ $g->nama }}</div>
                                         </div>
                                     </div>
+                                </td>
+                                <td>
+                                    @if($g->jenjang)
+                                        <span class="badge bg-secondary">{{ strtoupper($g->jenjang) }}</span>
+                                    @else
+                                        <span class="text-muted">-</span>
+                                    @endif
                                 </td>
                                 <td>
                                     @if($g->is_wali_kelas)

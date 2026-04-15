@@ -24,11 +24,20 @@ class RiwayatPenilaianController extends Controller
         if (!$activePeriod) {
             $riwayat = collect([]); // Kosongkan jika tidak ada periode aktif
         } else {
-            $riwayat = FinalScore::with(['guru', 'period', 'recommendation'])
+            $query = FinalScore::with(['guru', 'period', 'recommendation'])
                 ->has('guru')
                 ->where('periode_id', $activePeriod->id) // Filter hanya periode aktif
-                ->orderBy('nilai_akhir', 'desc') // Urutkan berdasarkan nilai tertinggi (opsional)
-                ->get();
+                ->orderBy('nilai_akhir', 'desc'); // Urutkan berdasarkan nilai tertinggi (opsional)
+
+            // Tambahan filter khusus kepala sekolah
+            $user = auth()->user();
+            if ($user->role === 'kepala_sekolah') {
+                $query->whereHas('guru', function($q) use ($user) {
+                    $q->where('jenjang', $user->jenjang);
+                });
+            }
+
+            $riwayat = $query->get();
         }
 
         return view('riwayat_penilaian.index', compact('riwayat', 'activePeriod'));
@@ -126,7 +135,6 @@ class RiwayatPenilaianController extends Controller
         if ($bobot && $indicators->isNotEmpty()) {
             foreach ($indicators as $indicator) {
                 // Rata-rata per role untuk indikator ini
-                // Gunakan whereHas('question') karena kpi_indicator_id tidak ada lagi di tabel details
                 
                 $avgKepsek = EvaluationDetail::whereHas('question', function($q) use ($indicator) {
                         $q->where('kpi_indicator_id', $indicator->id);

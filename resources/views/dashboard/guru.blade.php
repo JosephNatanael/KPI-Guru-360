@@ -2,7 +2,12 @@
 
 @section('content')
 <div class="container">
-    <h3 class="mb-4">Dashboard Guru</h3>
+    <div class="d-flex align-items-center mb-4">
+        <h3 class="mb-0">Dashboard Guru</h3>
+        @if($guru->jenjang)
+            <span class="badge bg-primary fs-6 ms-3">JENJANG {{ strtoupper($guru->jenjang) }}</span>
+        @endif
+    </div>
 
     {{-- 1️⃣ Informasi Umum --}}
     <div class="row mb-4">
@@ -325,17 +330,17 @@
         
         // Dynamic colors based on percentage
         const backgroundColors = data.map(val => {
-            if (val >= 90) return 'rgba(75, 192, 192, 0.6)'; // Green
-            if (val >= 80) return 'rgba(54, 162, 235, 0.6)'; // Blue
-            if (val >= 51) return 'rgba(255, 206, 86, 0.6)'; // Yellow
-            return 'rgba(255, 99, 132, 0.6)'; // Red
+            if (val >= 90) return 'rgba(40, 167, 69, 0.6)'; // Green
+            if (val >= 80) return 'rgba(0, 123, 255, 0.6)'; // Blue
+            if (val >= 51) return 'rgba(255, 193, 7, 0.6)'; // Yellow
+            return 'rgba(220, 53, 69, 0.6)'; // Red
         });
         
         const borderColors = data.map(val => {
-            if (val >= 90) return 'rgba(75, 192, 192, 1)';
-            if (val >= 80) return 'rgba(54, 162, 235, 1)';
-            if (val >= 51) return 'rgba(255, 206, 86, 1)';
-            return 'rgba(255, 99, 132, 1)';
+            if (val >= 90) return 'rgba(40, 167, 69, 1)';
+            if (val >= 80) return 'rgba(0, 123, 255, 1)';
+            if (val >= 51) return 'rgba(255, 193, 7, 1)';
+            return 'rgba(220, 53, 69, 1)';
         });
 
         new Chart(ctxIndicator, {
@@ -378,7 +383,9 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.parsed.x + '%';
+                                const val = context.parsed.x;
+                                const recText = indicatorData[context.dataIndex].kategori_rekomendasi;
+                                return 'Kinerja: ' + val.toFixed(2) + '% (' + recText + ')';
                             }
                         }
                     }

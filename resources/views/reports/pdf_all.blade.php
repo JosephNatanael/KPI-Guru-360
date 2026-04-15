@@ -29,6 +29,11 @@
         <h2>Laporan Rekap Penilaian Kinerja Guru</h2>
         <p>Periode Penilaian: {{ $periode->tahun_ajaran }} ({{ date('d-m-Y', strtotime($periode->tanggal_mulai)) }} s.d. {{ date('d-m-Y', strtotime($periode->tanggal_selesai)) }})</p>
         <p>Tanggal Cetak: {{ date('d F Y') }}</p>
+        @if(request()->filled('jenjang'))
+        <p style="font-weight: bold;">Filter Jenjang: {{ strtoupper(request('jenjang')) }}</p>
+        @elseif(auth()->check() && auth()->user()->role === 'kepala_sekolah')
+        <p style="font-weight: bold;">Filter Jenjang: {{ strtoupper(auth()->user()->jenjang) }}</p>
+        @endif
     </div>
 
     <!-- Ringkasan Umum -->
@@ -74,10 +79,11 @@
         <thead>
             <tr>
                 <th style="width: 5%">No</th>
-                <th style="width: 25%">Nama Guru</th>
+                <th style="width: 20%">Nama Guru</th>
+                <th style="width: 10%">Jenjang</th>
                 <th style="width: 15%">Status</th>
                 <th style="width: 10%">Nilai Akhir (%)</th>
-                <th style="width: 20%">Kategori Kinerja</th>
+                <th style="width: 15%">Kategori Kinerja</th>
                 <th style="width: 25%">Rekomendasi Sistem</th>
             </tr>
         </thead>
@@ -97,10 +103,11 @@
                 <tr>
                     <td class="text-center">{{ $index + 1 }}</td>
                     <td>{{ $score->guru->nama }}</td>
+                    <td class="text-center">{{ strtoupper($score->guru->jenjang ?? '-') }}</td>
                     <td class="text-center">{{ $score->guru->is_wali_kelas ? 'Wali Kelas' : 'Guru Mapel' }}</td>
                     <td class="text-center"><strong>{{ number_format($score->nilai_akhir, 2) }}</strong></td>
                     <td class="text-center">{{ $kategori }}</td>
-                    <td>{{ $score->rekomendasi ?? '-' }}</td>
+                    <td>{{ $score->recommendation->nama ?? '-' }}</td>
                 </tr>
             @empty
                 <tr>

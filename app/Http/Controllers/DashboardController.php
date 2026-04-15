@@ -71,14 +71,24 @@ class DashboardController extends Controller
             ]);
         }
 
+        // Filter query based on role
+        $guruQuery = Guru::query();
+        $scoresQuery = FinalScore::with(['guru', 'recommendation'])
+            ->has('guru')
+            ->where('periode_id', $periode->id);
+
+        if ($user->role === 'kepala_sekolah') {
+            $guruQuery->where('jenjang', $user->jenjang);
+            $scoresQuery->whereHas('guru', function($q) use ($user) {
+                $q->where('jenjang', $user->jenjang);
+            });
+        }
+
         // Semua guru
-        $totalGuru = Guru::count();
+        $totalGuru = $guruQuery->count();
 
         // Semua nilai akhir untuk periode aktif (Hanya yang GURUNYA MASIH ADA)
-        $scores = FinalScore::with(['guru', 'recommendation'])
-            ->has('guru')
-            ->where('periode_id', $periode->id)
-            ->get();
+        $scores = $scoresQuery->get();
 
         // 0️⃣ Filter Periode & Trend Data
         $allPeriods = Period::orderBy('tanggal_mulai', 'desc')->get();
@@ -87,36 +97,68 @@ class DashboardController extends Controller
         // --- LOGIKA PROGRESS PENILAIAN (Task Based) ---
         
         // 1. Kepala Sekolah
-        // Target: Menilai SEMUA guru aktif
-        $jumlahKepsek = \App\Models\User::where('role','kepala_sekolah')->count();
-
-$countKepsekTotal = $totalGuru * $jumlahKepsek;
-
-$countKepsekDone = Evaluation::where('periode_id', $periode->id)
-    ->where('role_penilai', 'kepala_sekolah')
-    ->whereHas('guru')
-    ->count(); // 1 kepala sekolah = 1 tugas
-
+        $countKepsekTotal = 0;
+        $kepseks = \App\Models\User::where('role', 'kepala_sekolah')->get();
+        if ($user->role === 'kepala_sekolah') {
+            $kepseks = $kepseks->where('id', $user->id);
+        }
+        foreach($kepseks as $ks) {
+             $countKepsekTotal += Guru::where('jenjang', $ks->jenjang)->count();
+        }
+        
+        $countKepsekDone = Evaluation::where('periode_id', $periode->id)
+            ->where('role_penilai', 'kepala_sekolah')
+            ->whereHas('guru', function($q) use ($user) {
+                if ($user->role === 'kepala_sekolah') {
+                    $q->where('jenjang', $user->jenjang);
+                }
+            })
+            ->count();
         
         // 2. Rekan Guru (360)
-        // Target: Setiap guru menilai semua guru LAINNYA.
-        // Total Tugas = Total Guru * (Total Guru - 1)
-        // Jika cuma 1 guru, tugas = 0.
-        $countGuruTotal = $totalGuru > 1 ? $totalGuru * ($totalGuru - 1) : 0;
+        // Tiap guru menilai guru lain di jenjangnya sendiri (N * (N-1))
+        $countGuruTotal = 0;
+        $guruGroupQuery = Guru::query();
+        if ($user->role === 'kepala_sekolah') {
+            $guruGroupQuery->where('jenjang', $user->jenjang);
+        }
+        $guruPerJenjang = $guruGroupQuery->select('jenjang', \Illuminate\Support\Facades\DB::raw('count(*) as total'))->groupBy('jenjang')->get();
+        foreach($guruPerJenjang as $gj) {
+             $n = $gj->total;
+             if ($n > 1) {
+                 $countGuruTotal += $n * ($n - 1);
+             }
+        }
+        
         $countGuruDone = Evaluation::where('periode_id', $periode->id)
             ->where('role_penilai', 'guru')
-            ->whereHas('guru')
-            ->count(); // Tetap hitung total row, asumsi aplikasi prevent duplicate entry
+            ->whereHas('guru', function($q) use ($user) {
+                if ($user->role === 'kepala_sekolah') {
+                    $q->where('jenjang', $user->jenjang);
+                }
+            })
+            ->count();
 
         // 3. Wali Murid
-        // Target: Setiap Wali Murid menilai 1 Guru (Wali Kelasnya)
-        // Kita asumsikan jumlah tugas = jumlah akun wali murid aktif
-        $totalWaliMurid = \App\Models\WaliMurid::count(); // Gunakan model WaliMurid
-        $countWaliTotal = $totalWaliMurid;
+        // Total wali murid yang kelasnya diajar oleh wali kelas pada jenjang yang relevan
+        $waliQuery = \App\Models\WaliMurid::query();
+        $waliKelasDb = Guru::where('is_wali_kelas', 1)->whereNotNull('kelas');
+        if ($user->role === 'kepala_sekolah') {
+            $waliKelasDb->where('jenjang', $user->jenjang);
+        }
+        $kelasWali = $waliKelasDb->pluck('kelas');
+        $waliQuery->whereIn('kelas', $kelasWali);
+        
+        $countWaliTotal = $waliQuery->count();
+        
         $countWaliDone = Evaluation::where('periode_id', $periode->id)
             ->where('role_penilai', 'wali_murid')
-            ->whereHas('guru')
-            ->distinct('penilai_id') // Satu wali murid hanya boleh dihitung 1x (jika sistem 1-to-1)
+            ->whereHas('guru', function($q) use ($user) {
+                if ($user->role === 'kepala_sekolah') {
+                    $q->where('jenjang', $user->jenjang);
+                }
+            })
+            ->distinct('penilai_id')
             ->count('penilai_id');
             
         // Hitung Persentase Per Role
@@ -188,8 +230,12 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
         $guruBelumDinilai = max(0, $totalGuru - $guruSudahDinilai);
         
         // List Belum Dinilai
-        $guruBelumDinilaiList = Guru::whereNotIn('id', $guruIdsSudahDinilai)
-            ->get()
+        $guruBelumDinilaiQuery = Guru::whereNotIn('id', $guruIdsSudahDinilai);
+        if ($user->role === 'kepala_sekolah') {
+            $guruBelumDinilaiQuery->where('jenjang', $user->jenjang);
+        }
+
+        $guruBelumDinilaiList = $guruBelumDinilaiQuery->get()
             ->map(function($guru) {
                 return [
                     'nama' => $guru->nama,
@@ -361,21 +407,25 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
             $schoolAvg360 = $validTeacherCount > 0 ? $totalAvg360 / $validTeacherCount : 0;
             $persentaseKinerja = ($schoolAvg360 / 5) * 100;
             $nilaiKontribusi = ($schoolAvg360 / 5) * $ind->bobot;
+
+            // Dapatkan kategori berdasarkan Recommendation users
+            $rec = \App\Models\Recommendation::where('min_score', '<=', $persentaseKinerja)
+                ->where('max_score', '>=', $persentaseKinerja)
+                ->first();
             
+            $kategori = $rec ? $rec->nama : 'Belum Ditentukan';
+            
+            // Warna sesuai rule user
             if ($persentaseKinerja >= 90) {
-                $kategori = 'Sangat Baik';
                 $kategoriIcon = '⭐';
                 $kategoriClass = 'success';
-            } elseif ($persentaseKinerja >= 80) {
-                $kategori = 'Baik';
+            } elseif ($persentaseKinerja >= 80) { // >= 80 and < 90
                 $kategoriIcon = '✅';
                 $kategoriClass = 'primary';
-            } elseif ($persentaseKinerja > 50) {
-                $kategori = 'Cukup';
+            } elseif ($persentaseKinerja >= 51) { // >= 51 and < 80
                 $kategoriIcon = '⚠';
                 $kategoriClass = 'warning';
-            } else {
-                $kategori = 'Kurang';
+            } else { // < 51
                 $kategoriIcon = '❌';
                 $kategoriClass = 'danger';
             }
@@ -533,11 +583,17 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
                 
                 // Persentase Kinerja (Avg360 / 5 * 100)
                 $persentaseKinerja = ($avg360 / 5) * 100;
+                
+                $rec = \App\Models\Recommendation::where('min_score', '<=', $persentaseKinerja)
+                    ->where('max_score', '>=', $persentaseKinerja)
+                    ->first();
+                $kategoriStr = $rec ? $rec->nama : 'Belum Ditentukan';
 
                 $indicatorPerformance[] = [
                     'nama' => $ind->nama,
                     'persentase' => round($persentaseKinerja, 2),
-                    'kompetensi' => ucfirst($ind->kompetensi)
+                    'kompetensi' => ucfirst($ind->kompetensi),
+                    'kategori_rekomendasi' => $kategoriStr
                 ];
             }
         }
@@ -599,9 +655,8 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
         $rekanBelumDinilaiList = [];
         
         if ($periode) {
-            // Guru menilai rekan sejawat (kecuali diri sendiri)
-            // Total Rekan = Total Guru - 1 (Diri sendiri)
-            $totalRekan = max(0, Guru::count() - 1);
+            // Guru menilai rekan sejawat pada jenjang yang sama (kecuali diri sendiri)
+            $totalRekan = Guru::where('jenjang', $guru->jenjang)->where('id', '!=', $guru->id)->count();
             
             // Yang sudah dinilai oleh user ini
             $myEvaluations = Evaluation::with('guru')
@@ -610,7 +665,6 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
                 ->get();
             
             $rekanSudahDinilaiCount = $myEvaluations->count();
-            $rekanBelumDinilaiCount = max(0, $totalRekan - $rekanSudahDinilaiCount);
             
             // Lists
             $rekanSudahDinilaiList = $myEvaluations->map(function($eval) {
@@ -621,10 +675,15 @@ $countKepsekDone = Evaluation::where('periode_id', $periode->id)
             });
             
             $evaluatedIds = $myEvaluations->pluck('guru_id')->toArray();
-            $rekanBelumDinilaiList = Guru::where('id', '!=', $guru->id)
+            
+            $rekanBelumDinilaiQuery = Guru::where('jenjang', $guru->jenjang)
+                ->where('id', '!=', $guru->id)
                 ->whereNotIn('id', $evaluatedIds)
-                ->get()
-                ->map(function($g) {
+                ->get();
+                
+            $rekanBelumDinilaiCount = $rekanBelumDinilaiQuery->count();
+                
+            $rekanBelumDinilaiList = $rekanBelumDinilaiQuery->map(function($g) {
                     return [
                         'nama' => $g->nama,
                         'kelas' => $g->kelas

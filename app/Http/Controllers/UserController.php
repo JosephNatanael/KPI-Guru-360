@@ -34,6 +34,10 @@ class UserController extends Controller
             'role'  => 'required|in:admin,kepala_sekolah,guru,wali_murid',
         ];
 
+        if (in_array($request->role, ['kepala_sekolah', 'guru'])) {
+            $rules['jenjang'] = 'required|in:PG/TK,SD,SMP';
+        }
+
         // Email is now required for everyone including wali_murid
         $rules['email'] = 'required|email|unique:users';
 
@@ -71,6 +75,7 @@ class UserController extends Controller
             'name'     => $request->name,
             'email'    => $email,
             'role'     => $request->role,
+            'jenjang'     => in_array($request->role, ['kepala_sekolah', 'guru']) ? $request->jenjang : null,
             'password' => Hash::make('password123') // password default
         ]);
 
@@ -83,6 +88,7 @@ class UserController extends Controller
                 // nip removed
                 'is_wali_kelas' => $request->has('is_wali_kelas') ? 1 : 0,
                 'kelas' => $request->kelas,
+                'jenjang'  => $request->jenjang,
                 'user_id' => $user->id
             ]);
         }
@@ -120,6 +126,10 @@ class UserController extends Controller
             'role'  => 'required|in:admin,kepala_sekolah,guru,wali_murid',
         ];
 
+        if (in_array($request->role, ['kepala_sekolah', 'guru'])) {
+            $rules['jenjang'] = 'required|in:PG/TK,SD,SMP';
+        }
+
         // Add validation for Guru profile fields
         if ($request->role === 'guru') {
             // NIP removed
@@ -154,6 +164,7 @@ class UserController extends Controller
             'name'    => $request->name,
             'email'   => $request->email,
             'role'    => $request->role,
+            'jenjang'    => in_array($request->role, ['kepala_sekolah', 'guru']) ? $request->jenjang : null,
         ]);
 
         // Handle Guru profile
@@ -165,6 +176,7 @@ class UserController extends Controller
                     // nip removed
                     'is_wali_kelas' => $request->has('is_wali_kelas') ? 1 : 0,
                     'kelas' => $request->kelas,
+                    'jenjang'  => $request->jenjang,
                 ]);
             } else {
                 // Create new profile
@@ -173,6 +185,7 @@ class UserController extends Controller
                     // nip removed
                     'is_wali_kelas' => $request->has('is_wali_kelas') ? 1 : 0,
                     'kelas' => $request->kelas,
+                    'jenjang'  => $request->jenjang,
                     'user_id' => $user->id
                 ]);
             }

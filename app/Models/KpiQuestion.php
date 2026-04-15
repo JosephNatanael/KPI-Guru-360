@@ -12,6 +12,7 @@ class KpiQuestion extends Model
     protected $fillable = [
         'kpi_indicator_id',
         'periode_id',
+        'role_penilai',
         'pertanyaan',
         'urutan',
     ];
