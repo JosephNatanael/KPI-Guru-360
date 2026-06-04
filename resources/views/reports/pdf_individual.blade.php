@@ -37,6 +37,10 @@
             <td>: <strong>{{ $guru->nama }}</strong></td>
         </tr>
         <tr>
+            <td>Jenjang</td>
+            <td>: {{ strtoupper($guru->jenjang ?? '-') }}</td>
+        </tr>
+        <tr>
             <td>Jabatan</td>
             <td>: {{ $guru->is_wali_kelas ? 'Wali Kelas' : 'Guru Mapel' }}</td>
         </tr>

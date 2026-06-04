@@ -94,6 +94,10 @@ Route::middleware('auth')->group(function () {
         Route::resource('period', PeriodController::class);
         Route::resource('weights', EvaluatorWeightController::class);
         Route::resource('recommendations', RecommendationController::class)->except(['show']);
+
+        // Pertanyaan KPI (Admin only)
+        Route::post('kpi-questions/copy', [KpiQuestionController::class, 'copyQuestions'])->name('kpi-questions.copy');
+        Route::resource('kpi-questions', KpiQuestionController::class)->except(['show']);
     });
 
     /*
@@ -104,8 +108,6 @@ Route::middleware('auth')->group(function () {
     Route::middleware('role:kepala_sekolah')->group(function () {
         Route::resource('kpi', KpiIndicatorController::class);
         Route::post('kpi/{kpi}/toggle-status', [KpiIndicatorController::class, 'toggleStatus'])->name('kpi.toggle-status');
-        Route::post('kpi-questions/copy', [KpiQuestionController::class, 'copyQuestions'])->name('kpi-questions.copy');
-        Route::resource('kpi-questions', KpiQuestionController::class)->except(['show']);
     });
 
     /*

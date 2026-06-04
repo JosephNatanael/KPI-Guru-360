@@ -13,6 +13,7 @@
 
 <p>
     <strong>Guru:</strong> {{ $guru->nama }} <br>
+    <strong>Jenjang:</strong> {{ $guru->jenjang }} <br>
     <strong>Periode:</strong> {{ $periode->tahun_ajaran }} ({{ ucfirst($periode->semester) }})
 </p>
 

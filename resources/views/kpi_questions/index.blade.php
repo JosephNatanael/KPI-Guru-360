@@ -7,13 +7,13 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
                 <h3 class="mb-1 text-primary fw-bold">Pertanyaan KPI</h3>
-                <p class="text-muted mb-0">Kelola daftar pertanyaan untuk penilaian</p>
+                <p class="text-muted mb-0">Kelola daftar pertanyaan untuk penilaian berdasarkan role penilai</p>
             </div>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#copyQuestionsModal">
                     <i class="bi bi-files me-2"></i>Salin dari Periode
                 </button>
-                <a href="{{ route('kpi-questions.create') }}" class="btn btn-primary shadow-sm">
+                <a href="{{ route('kpi-questions.create', ['role_penilai' => $rolePenilai]) }}" class="btn btn-primary shadow-sm">
                     <i class="bi bi-plus-circle-fill me-2"></i>Tambah Pertanyaan
                 </a>
             </div>
@@ -75,9 +75,34 @@
             </div>
         @endif
 
+        {{-- ROLE TABS --}}
         <div class="card card-premium mb-4">
-            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+            <div class="card-header bg-white border-bottom pt-3 pb-0">
+                <ul class="nav nav-tabs card-header-tabs">
+                    @php
+                        $roles = [
+                            'kepala_sekolah' => ['label' => 'Kepala Sekolah', 'icon' => 'bi-person-badge'],
+                            'guru'           => ['label' => 'Guru (Rekan Sejawat)', 'icon' => 'bi-people'],
+                            'wali_murid'     => ['label' => 'Wali Murid', 'icon' => 'bi-person-hearts'],
+                        ];
+                    @endphp
+                    @foreach($roles as $roleKey => $roleInfo)
+                        <li class="nav-item">
+                            <a class="nav-link {{ $rolePenilai == $roleKey ? 'active fw-bold' : 'text-muted' }}"
+                               href="{{ route('kpi-questions.index', ['role_penilai' => $roleKey, 'periode_id' => $periodeId]) }}">
+                                <i class="bi {{ $roleInfo['icon'] }} me-1"></i>{{ $roleInfo['label'] }}
+                                <span class="badge {{ $rolePenilai == $roleKey ? 'bg-primary' : 'bg-secondary' }} ms-1">
+                                    {{ \App\Models\KpiQuestion::where('role_penilai', $roleKey)->where('periode_id', $periodeId)->count() }}
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+
+            <div class="card-body pt-3 pb-0">
                 <form method="GET" class="row g-2 align-items-center">
+                    <input type="hidden" name="role_penilai" value="{{ $rolePenilai }}">
                     <div class="col-md-4">
                         <div class="input-group">
                             <span class="input-group-text bg-light border-end-0">
@@ -118,8 +143,8 @@
                             <tr>
                                 <th style="width: 25%;">KPI</th>
                                 <th style="width: 15%;">Kompetensi</th>
-                                <th style="width: 50%;">Pertanyaan</th>
-                                <th class="d-none d-md-table-cell" style="width: 10%;">Urutan</th>
+                                <th style="width: 45%;">Pertanyaan</th>
+                                <th class="d-none d-md-table-cell" style="width: 5%;">Urutan</th>
                                 <th class="text-end" style="width: 10%;">Aksi</th>
                             </tr>
                         </thead>
@@ -163,7 +188,7 @@
                                 <tr>
                                     <td colspan="5" class="text-center py-5 text-muted">
                                         <i class="bi bi-question-circle display-6 d-block mb-3"></i>
-                                        Belum ada pertanyaan KPI yang ditemukan.
+                                        Belum ada pertanyaan KPI untuk role <strong>{{ $roles[$rolePenilai]['label'] ?? $rolePenilai }}</strong>.
                                     </td>
                                 </tr>
                             @endforelse
@@ -174,7 +199,7 @@
             
             <div class="card-footer bg-white border-top-0 py-3">
                 <div class="text-muted small">
-                    Total: <strong>{{ $questions->count() }}</strong> pertanyaan
+                    Total: <strong>{{ $questions->count() }}</strong> pertanyaan untuk role <strong>{{ $roles[$rolePenilai]['label'] ?? $rolePenilai }}</strong>
                 </div>
             </div>
         </div>
@@ -191,7 +216,7 @@
             button.addEventListener('click', function(e) {
                 e.preventDefault();
                 const form = this.closest('form');
-                const name = this.getAttribute('data-name'); // Could be truncated if too long
+                const name = this.getAttribute('data-name');
 
                 Swal.fire({
                     title: 'Hapus Pertanyaan?',
@@ -212,11 +237,3 @@
     });
 </script>
 @endsection
-
-
-
-
-
-
-
-

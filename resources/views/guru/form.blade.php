@@ -3,6 +3,18 @@
     <input type="text" name="nama" class="form-control" value="{{ old('nama', $guru->nama ?? '') }}">
 </div>
 
+<div class="mb-3">
+    <label>Jenjang <span class="text-danger">*</span></label>
+    <select name="jenjang" class="form-control">
+        <option value="">-- Pilih Jenjang --</option>
+        @foreach(['PG/TK', 'SD', 'SMP'] as $u)
+            <option value="{{ $u }}" {{ old('jenjang', $guru->jenjang ?? '') == $u ? 'selected' : '' }}>
+                {{ $u }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
 
 
 <div class="mb-3">

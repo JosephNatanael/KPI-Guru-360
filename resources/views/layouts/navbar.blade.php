@@ -165,6 +165,7 @@
                         <li><a class="dropdown-item" href="{{ route('weights.index') }}">Bobot Penilai</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item" href="{{ route('recommendations.index') }}">Rekomendasi</a></li>
+                        <li><a class="dropdown-item" href="{{ route('kpi-questions.index') }}">Pertanyaan KPI</a></li>
                     </ul>
                 </li>
                 @endif
@@ -176,8 +177,7 @@
                         Master KPI
                     </a>
                     <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="{{ route('kpi.index') }}">KPI</a></li>
-                        <li><a class="dropdown-item" href="{{ route('kpi-questions.index') }}">Pertanyaan KPI</a></li>
+                        <li><a class="dropdown-item" href="{{ route('kpi.index') }}">Indikator KPI</a></li>
                     </ul>
                 </li>
                 @endif

@@ -42,11 +42,23 @@
             <div class="d-flex justify-content-between align-items-center">
                 <span class="fw-semibold">Rekap Nilai Akhir Guru</span>
 
-                <a href="{{ route('reports.cetak-semua') }}"
-                   target="_blank"
-                   class="btn btn-sm btn-danger fw-semibold">
-                    <i class="fas fa-print me-1"></i> Cetak Semua
-                </a>
+                <div class="d-flex gap-2">
+                    @if(auth()->user()->role === 'admin' && count($jenjangs) > 0)
+                    <form action="{{ route('finalscore.index') }}" method="GET" class="d-flex align-items-center me-2">
+                        <select name="jenjang" class="form-select form-select-sm bg-white text-dark w-auto" onchange="this.form.submit()">
+                            <option value="">Semua Jenjang</option>
+                            @foreach($jenjangs as $j)
+                                <option value="{{ $j }}" {{ request('jenjang') == $j ? 'selected' : '' }}>{{ strtoupper($j) }}</option>
+                            @endforeach
+                        </select>
+                    </form>
+                    @endif
+                    <a href="{{ route('reports.cetak-semua', request()->query()) }}"
+                       target="_blank"
+                       class="btn btn-sm btn-danger fw-semibold">
+                        <i class="fas fa-print me-1"></i> Cetak Semua
+                    </a>
+                </div>
             </div>
         </div>
 
@@ -55,6 +67,7 @@
                 <thead class="table-light text-center">
                     <tr>
                         <th>Guru</th>
+                        <th>Jenjang</th>
                         <th>KS</th>
                         <th>RG</th>
                         <th>WM</th>
@@ -86,6 +99,13 @@
 
                     <tr>
                         <td class="fw-semibold">{{ $s->guru->nama }}</td>
+                        <td class="text-center">
+                            @if($s->guru->jenjang)
+                                <span class="badge bg-secondary">{{ strtoupper($s->guru->jenjang) }}</span>
+                            @else
+                                -
+                            @endif
+                        </td>
 
                         <td class="text-center">{{ number_format($s->nilai_kepala_sekolah, 2) }}</td>
                         <td class="text-center">{{ number_format($s->nilai_rekan_guru, 2) }}</td>

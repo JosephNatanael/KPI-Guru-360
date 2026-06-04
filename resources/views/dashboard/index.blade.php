@@ -3,7 +3,12 @@
 @section('content')
 <div class="container">
 
-    <h3 class="mb-4">Dashboard Kepala Sekolah</h3>
+    <div class="d-flex align-items-center mb-4">
+        <h3 class="mb-0">Dashboard {{ auth()->user()->role === 'admin' ? 'Admin' : 'Kepala Sekolah' }}</h3>
+        @if(auth()->user()->role === 'kepala_sekolah' && auth()->user()->jenjang)
+            <span class="badge bg-primary fs-6 ms-3">JENJANG {{ strtoupper(auth()->user()->jenjang) }}</span>
+        @endif
+    </div>
 
     @if(!$periode)
         <div class="alert alert-warning">
@@ -471,6 +476,20 @@
     const indicatorLabels = indicatorPerformance.map(item => item.nama);
     const indicatorValues = indicatorPerformance.map(item => item.persentase_kinerja);
     
+    const indicatorBackgroundColors = indicatorValues.map(val => {
+        if (val >= 90) return 'rgba(40, 167, 69, 0.6)'; // Green
+        if (val >= 80) return 'rgba(0, 123, 255, 0.6)'; // Blue
+        if (val >= 51) return 'rgba(255, 193, 7, 0.6)'; // Yellow
+        return 'rgba(220, 53, 69, 0.6)'; // Red
+    });
+    
+    const indicatorBorderColors = indicatorValues.map(val => {
+        if (val >= 90) return 'rgba(40, 167, 69, 1)';
+        if (val >= 80) return 'rgba(0, 123, 255, 1)';
+        if (val >= 51) return 'rgba(255, 193, 7, 1)';
+        return 'rgba(220, 53, 69, 1)';
+    });
+
     new Chart(ctxKompetensi, {
         type: 'bar',
         data: {
@@ -478,8 +497,8 @@
             datasets: [{
                 label: 'Persentase Kinerja (%)',
                 data: indicatorValues,
-                backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: indicatorBackgroundColors,
+                borderColor: indicatorBorderColors,
                 borderWidth: 1
             }]
         },
@@ -501,7 +520,9 @@
                 tooltip: {
                     callbacks: {
                         label: function(context) {
-                            return 'Persentase Kinerja: ' + context.parsed.y.toFixed(2) + '%';
+                            const val = context.parsed.y;
+                            const recText = indicatorPerformance[context.dataIndex].kategori;
+                            return 'Kinerja: ' + val.toFixed(2) + '% (' + recText + ')';
                         }
                     }
                 }

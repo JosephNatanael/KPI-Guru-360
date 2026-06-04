@@ -13,6 +13,7 @@ class KpiQuestionController extends Controller
     {
         $kpiId = $request->get('kpi_id');
         $periodeId = $request->get('periode_id');
+        $rolePenilai = $request->get('role_penilai', 'kepala_sekolah');
 
         $activePeriod = Period::where('status', 'aktif')->first();
         
@@ -24,7 +25,10 @@ class KpiQuestionController extends Controller
         $indikators = KpiIndicator::orderBy('nama')->get();
         $periods = Period::orderBy('tanggal_mulai', 'desc')->get();
 
-        $query = KpiQuestion::with(['kpi', 'period'])->orderBy('kpi_indicator_id')->orderBy('urutan');
+        $query = KpiQuestion::with(['kpi', 'period'])
+            ->where('role_penilai', $rolePenilai)
+            ->orderBy('kpi_indicator_id')
+            ->orderBy('urutan');
         
         if ($kpiId) {
             $query->where('kpi_indicator_id', $kpiId);
@@ -36,16 +40,17 @@ class KpiQuestionController extends Controller
 
         $questions = $query->get();
 
-        return view('kpi_questions.index', compact('questions', 'indikators', 'kpiId', 'periods', 'periodeId', 'activePeriod'));
+        return view('kpi_questions.index', compact('questions', 'indikators', 'kpiId', 'periods', 'periodeId', 'activePeriod', 'rolePenilai'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $indikators = KpiIndicator::orderBy('nama')->get();
         $periods = Period::orderBy('tanggal_mulai', 'desc')->get();
         $activePeriod = Period::where('status', 'aktif')->first();
+        $rolePenilai = $request->get('role_penilai', 'kepala_sekolah');
 
-        return view('kpi_questions.create', compact('indikators', 'periods', 'activePeriod'));
+        return view('kpi_questions.create', compact('indikators', 'periods', 'activePeriod', 'rolePenilai'));
     }
 
     public function store(Request $request)
@@ -53,6 +58,7 @@ class KpiQuestionController extends Controller
         $data = $request->validate([
             'kpi_indicator_id' => 'required|exists:kpi_indicators,id',
             'periode_id'       => 'nullable|exists:periods,id',
+            'role_penilai'     => 'required|in:kepala_sekolah,guru,wali_murid',
             'pertanyaan'       => 'required|string|max:255',
             'urutan'           => 'nullable|integer|min:1',
         ]);
@@ -74,15 +80,12 @@ class KpiQuestionController extends Controller
 
         KpiQuestion::create($data);
 
-        return redirect()->route('kpi-questions.index', ['periode_id' => $data['periode_id']])
+        return redirect()->route('kpi-questions.index', ['periode_id' => $data['periode_id'], 'role_penilai' => $data['role_penilai']])
             ->with('success', 'Pertanyaan KPI berhasil ditambahkan.');
     }
 
     public function edit(KpiQuestion $kpi_question)
     {
-        // Cek locking mechanism (opsional: biarkan masuk ke view tapi readonly atau tampilkan error di form)
-        // Di index sudah ada locking, tapi ini untuk pengamanan tambahan via URL direct.
-        
         $indikators = KpiIndicator::orderBy('nama')->get();
         $periods = Period::orderBy('tanggal_mulai', 'desc')->get();
         $activePeriod = Period::where('status', 'aktif')->first();
@@ -104,13 +107,14 @@ class KpiQuestionController extends Controller
 
         $data = $request->validate([
             'kpi_indicator_id' => 'required|exists:kpi_indicators,id',
+            'role_penilai'     => 'required|in:kepala_sekolah,guru,wali_murid',
             'pertanyaan'       => 'required|string|max:255',
             'urutan'           => 'nullable|integer|min:1',
         ]);
 
         $kpi_question->update($data);
 
-        return redirect()->route('kpi-questions.index', ['periode_id' => $kpi_question->periode_id])
+        return redirect()->route('kpi-questions.index', ['periode_id' => $kpi_question->periode_id, 'role_penilai' => $kpi_question->role_penilai])
             ->with('success', 'Pertanyaan KPI berhasil diperbarui.');
     }
 
@@ -122,9 +126,10 @@ class KpiQuestionController extends Controller
         }
 
         $periodeId = $kpi_question->periode_id;
+        $rolePenilai = $kpi_question->role_penilai;
         $kpi_question->delete();
 
-        return redirect()->route('kpi-questions.index', ['periode_id' => $periodeId])
+        return redirect()->route('kpi-questions.index', ['periode_id' => $periodeId, 'role_penilai' => $rolePenilai])
             ->with('success', 'Pertanyaan KPI berhasil dihapus.');
     }
 
@@ -153,7 +158,7 @@ class KpiQuestionController extends Controller
             return back()->with('error', 'Tidak ada pertanyaan untuk disalin dari periode tersebut.');
         }
 
-        // Opsional: Hapus pertanyaan yang sudah ada di periode tujuan agar tidak double
+        // Hapus pertanyaan yang sudah ada di periode tujuan
         KpiQuestion::where('periode_id', $to_id)->delete();
 
         $count = 0;
@@ -161,6 +166,7 @@ class KpiQuestionController extends Controller
             KpiQuestion::create([
                 'kpi_indicator_id' => $q->kpi_indicator_id,
                 'periode_id'       => $to_id,
+                'role_penilai'     => $q->role_penilai,
                 'pertanyaan'       => $q->pertanyaan,
                 'urutan'           => $q->urutan,
             ]);

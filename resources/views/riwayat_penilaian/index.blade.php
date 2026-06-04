@@ -14,6 +14,7 @@
         <thead class="table-primary">
             <tr>
                 <th>Guru</th>
+                <th>Jenjang</th>
                 <th class="text-center">Nilai Akhir</th>
                 <th class="d-none d-md-table-cell">Rekomendasi</th>
                 <th class="text-end">Detail</th>
@@ -23,6 +24,7 @@
         @foreach ($riwayat as $item)
             <tr>
                 <td>{{ $item->guru->nama }}</td>
+                <td>{{ $item->guru->jenjang }}</td>
                 <td class="text-center fw-bold">{{ $item->nilai_akhir }}</td>
                 <td class="d-none d-md-table-cell">{{ $item->recommendation->nama ?? '-' }}</td>
                 <td class="text-end">

@@ -11,6 +11,19 @@
     </select>
 </div>
 
+{{-- JENJANG (Kepala Sekolah & Guru) --}}
+<div class="mb-3" id="jenjangBox" style="display:none">
+    <label>Jenjang <span class="text-danger">*</span></label>
+    <select name="jenjang" class="form-control">
+        <option value="">-- Pilih Jenjang --</option>
+        @foreach(['PG/TK', 'SD', 'SMP'] as $u)
+            <option value="{{ $u }}" {{ old('jenjang', $user->jenjang ?? ($user->guru->jenjang ?? '')) == $u ? 'selected' : '' }}>
+                {{ $u }}
+            </option>
+        @endforeach
+    </select>
+</div>
+
 {{-- GENERIC FIELDS (Hidden until role selected) --}}
 <div id="genericFields">
     <div class="mb-3">
@@ -89,6 +102,10 @@
         document.getElementById('waliMuridProfileBox').style.display = 
             (role === 'wali_murid') ? 'block' : 'none';
 
+        // Toggle Jenjang box
+        document.getElementById('jenjangBox').style.display = 
+            (role === 'guru' || role === 'kepala_sekolah') ? 'block' : 'none';
+
         // Toggle Generic Fields visibility
         let genericFields = document.getElementById('genericFields');
         if (role === '') {
@@ -97,13 +114,6 @@
             genericFields.style.display = 'block';
         }
 
-        // Hide Email manual input for Wali Murid (Auto-generated) - REMOVED
-        // let emailBox = document.getElementById('emailBox');
-        // if (role === 'wali_murid') {
-        //     emailBox.style.display = 'none';
-        // } else {
-        //     emailBox.style.display = 'block';
-        // }
         // Always show email box
         document.getElementById('emailBox').style.display = 'block';
         
